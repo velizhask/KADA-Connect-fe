@@ -173,3 +173,18 @@
 @function adjust-contrast($color, $bg, $ratio: 4.5) {
   @return color-contrast($color vs $bg to $ratio);
 }
+@keyframes arrowHover {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.hover-animate-arrow:hover svg {
+  animation: arrowHover 0.5s ease-in-out infinite;
+}

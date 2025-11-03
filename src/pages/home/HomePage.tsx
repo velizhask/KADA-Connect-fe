@@ -70,6 +70,32 @@ const testimonials = [
   },
 ];
 
+const industryVisitEvent = {
+  title: "KADA Connect Industry Visit 2025",
+  location: "Jakarta, Indonesia",
+  description:
+    "Join networking, company presentations, and one-on-one meetings with industry leaders.",
+  startTime: "2025-11-12T09:00:00", // ISO format
+  endTime: "2025-11-12T17:00:00",
+};
+
+const generateGoogleCalendarLink = (event: typeof industryVisitEvent) => {
+  const { title, location, description, startTime, endTime } = event;
+
+  const formattedStart = startTime
+    .replace(/[-:]/g, "")
+    .replace(/\.\d+Z$/, "Z");
+  const formattedEnd = endTime.replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
+
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+    title
+  )}&dates=${formattedStart}/${formattedEnd}&details=${encodeURIComponent(
+    description
+  )}&location=${encodeURIComponent(location)}`;
+};
+
+const googleCalendarLink = generateGoogleCalendarLink(industryVisitEvent);
+
 const HomePage = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -81,6 +107,9 @@ const HomePage = () => {
     return () => clearInterval(timer);
   }, []);
 
+   useEffect(() => {
+      document.title = "KADA Connect";
+    }, []);
   return (
     <MainLayout isFullWidth>
       {/* Hero Section - Simplified & More Focused */}
@@ -221,82 +250,90 @@ const HomePage = () => {
           </Marquee>
         </div>
       </section>
+{/* How It Works - Enhanced Cards */}
+<section className="py-24 bg-white">
+  <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+    <div className="text-center mb-16">
+      <h2 className="text-3xl md:text-4xl font-medium mb-4">
+        How KADA Connect Works
+      </h2>
+      <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        Three simple steps to create meaningful professional connections
+      </p>
+    </div>
 
-      {/* How It Works - Enhanced Cards */}
-      <section className="py-24 bg-white">
-        <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-medium mb-4">
-              How KADA Connect Works
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Three simple steps to create meaningful professional connections
-            </p>
+    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      {/* Card 1 - Companies */}
+      <Card className="flex flex-col justify-between p-8 border border-gray-200 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 group relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+
+        <div className="relative">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary group-hover:scale-110 transition-all">
+            <Building2 className="h-8 w-8 text-primary group-hover:text-white transition-colors" />
           </div>
-
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="p-8 border border-gray-200 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 group relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
-              <div className="relative">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary group-hover:scale-110 transition-all">
-                  <Building2 className="h-8 w-8 text-primary group-hover:text-white transition-colors" />
-                </div>
-                <h3 className="mb-3 text-xl font-medium">For Companies</h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  Browse talented KADA trainees, filter by tech stack and
-                  skills, and explore detailed profiles with portfolios and CVs.
-                </p>
-                <Link
-                  to="/companies"
-                  className="text-primary text-sm font-medium inline-flex items-center gap-2 group-hover:gap-3 transition-all"
-                >
-                  Browse Companies <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </Card>
-
-            <Card className="p-8 border border-gray-200 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 group relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -mr-16 -mt-16 group-hover:bg-accent/10 transition-colors" />
-              <div className="relative">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary group-hover:scale-110 transition-all">
-                  <GraduationCap className="h-8 w-8 text-primary group-hover:text-white transition-colors" />
-                </div>
-                <h3 className="mb-3 text-xl font-medium">For Trainees</h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  Discover visiting companies, learn about their mission and
-                  values, and find career opportunities that match your
-                  aspirations.
-                </p>
-                <Link
-                  to="/trainees"
-                  className="text-primary text-sm font-medium inline-flex items-center gap-2 group-hover:gap-3 transition-all"
-                >
-                  View Trainees <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </Card>
-
-            <Card className="p-8 border border-gray-200 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 group relative overflow-hidden md:col-span-2 lg:col-span-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
-              <div className="relative">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary group-hover:scale-110 transition-all">
-                  <Calendar className="h-8 w-8 text-primary group-hover:text-white transition-colors" />
-                </div>
-                <h3 className="mb-3 text-xl font-medium">
-                  Industry Visit 2025
-                </h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  Join us November 12, 2025 for networking, company
-                  presentations, and one-on-one meetings with industry leaders.
-                </p>
-                <span className="text-primary text-sm font-medium inline-flex items-center gap-2">
-                  Save the Date <ArrowRight className="h-4 w-4" />
-                </span>
-              </div>
-            </Card>
-          </div>
+          <h3 className="mb-3 text-xl font-medium">For Companies</h3>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            Browse talented KADA trainees, filter by tech stack and skills, and explore detailed profiles with portfolios and CVs.
+          </p>
         </div>
-      </section>
+
+        <Link
+          to="/companies"
+          className="mt-auto inline-flex items-center gap-2 text-primary font-medium text-sm hover:text-primary/80 hover-animate-arrow"
+        >
+          Browse Companies <ArrowRight className="h-4 w-4" />
+        </Link>
+      </Card>
+
+      {/* Card 2 - Trainees */}
+      <Card className="flex flex-col justify-between p-8 border border-gray-200 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 group relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+
+        <div className="relative">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary group-hover:scale-110 transition-all">
+            <GraduationCap className="h-8 w-8 text-primary group-hover:text-white transition-colors" />
+          </div>
+          <h3 className="mb-3 text-xl font-medium">For Trainees</h3>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            Discover visiting companies, learn about their mission and values, and find career opportunities that match your aspirations.
+          </p>
+        </div>
+
+        <Link
+          to="/trainees"
+          className="mt-auto inline-flex items-center gap-2 text-primary font-medium text-sm hover:text-primary/80 hover-animate-arrow"
+        >
+          View Trainees <ArrowRight className="h-4 w-4" />
+        </Link>
+      </Card>
+
+      {/* Card 3 - Save the Date */}
+      <Card className="flex flex-col justify-between p-8 border border-gray-200 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300 group relative overflow-hidden md:col-span-2 lg:col-span-1">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+
+        <div className="relative">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary group-hover:scale-110 transition-all">
+            <Calendar className="h-8 w-8 text-primary group-hover:text-white transition-colors" />
+          </div>
+          <h3 className="mb-3 text-xl font-medium">Industry Visit 2025</h3>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            Join us November 12, 2025 for networking, company presentations, and one-on-one meetings with industry leaders.
+          </p>
+        </div>
+
+        <a
+          href={googleCalendarLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-auto inline-flex items-center gap-2 text-primary font-medium text-sm hover:text-primary/80 hover-animate-arrow"
+        >
+          Save to Google Calendar <ArrowRight className="h-4 w-4" />
+        </a>
+      </Card>
+    </div>
+  </div>
+</section>
+
 
       {/* Testimonials - Enhanced with Navigation */}
       <section className="py-24 bg-linear-to-b from-gray-50 to-white">

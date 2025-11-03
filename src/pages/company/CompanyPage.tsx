@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import MainLayout from "@/layouts/MainLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,9 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  User,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { lookupServices } from "@/services/lookupServices";
 import { companyServices } from "@/services/companyServices";
@@ -21,7 +24,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { getImageProps, getImageUrl } from "@/utils/imageHelper";
 import { useDebounce } from "@/hooks/useDebounce";
 
 interface Company {
@@ -64,6 +66,11 @@ const CompanyPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const industryOptions = useMemo(() => [...industries].sort(), [industries]);
+  const techRoleOptions = useMemo(() => [...techRoles].sort(), [techRoles]);
+
+  const [cache, setCache] = useState<Record<string, Company[]>>({});
+
   // Fetch Lookup Data
   useEffect(() => {
     const fetchLookups = async () => {
@@ -81,13 +88,25 @@ const CompanyPage = () => {
     fetchLookups();
   }, []);
 
-  // Fetch Companies
-  useEffect(() => {
-    fetchCompanies(pagination.page);
-  }, [debouncedSearch, selectedIndustry, selectedTechRole, pagination.page]);
+useEffect(() => {
+  fetchCompanies(pagination.page);
+}, [debouncedSearch, selectedIndustry, selectedTechRole, pagination.page]);
 
   const fetchCompanies = async (page: number) => {
+    const cacheKey = JSON.stringify({
+      page,
+      selectedIndustry,
+      selectedTechRole,
+      debouncedSearch,
+    });
+
     try {
+      if (cache[cacheKey]) {
+        setCompanies(cache[cacheKey]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       const filters = {
         page,
@@ -97,30 +116,29 @@ const CompanyPage = () => {
       };
 
       const res =
-        searchTerm.trim().length > 0
-          ? await companyServices.searchCompanies(searchTerm, filters)
+        debouncedSearch.trim().length > 0
+          ? await companyServices.searchCompanies(debouncedSearch, filters)
           : await companyServices.getCompanies(filters);
 
       const fetchedData = res.data?.data || [];
       const fetchedPagination = res.data?.pagination || {};
 
-      const normalizedData = fetchedData.map((c: any) => ({
-        ...c,
-        logo: getImageUrl(c.logo),
-      }));
+      // Cache the result
+      setCache((prev) => ({ ...prev, [cacheKey]: fetchedData }));
 
-      setCompanies(normalizedData);
-      setPagination({
+      setCompanies(fetchedData);
+      setPagination((prev) => ({
+        ...prev,
         page: fetchedPagination.page ?? 1,
-        limit: fetchedPagination.limit ?? 9,
+        limit: fetchedPagination.limit ?? prev.limit,
         total: fetchedPagination.total ?? fetchedData.length,
         totalPages:
           fetchedPagination.totalPages ??
           Math.ceil(
             (fetchedPagination.total ?? fetchedData.length) /
-              (fetchedPagination.limit ?? 9)
+              (fetchedPagination.limit ?? prev.limit)
           ),
-      });
+      }));
 
       setError(null);
     } catch (err) {
@@ -131,14 +149,18 @@ const CompanyPage = () => {
     }
   };
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
-      setPagination((prev) => ({ ...prev, page: newPage }));
-    }
-  };
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (newPage >= 1 && newPage <= pagination.totalPages) {
+        setPagination((prev) => ({ ...prev, page: newPage }));
+      }
+    },
+    [pagination.totalPages]
+  );
 
   useEffect(() => {
     setPagination((prev) => ({ ...prev, page: 1 }));
+    setCache({});
   }, [searchTerm, selectedIndustry, selectedTechRole]);
 
   const getPageNumbers = () => {
@@ -156,6 +178,9 @@ const CompanyPage = () => {
       );
     });
   };
+   useEffect(() => {
+    document.title = "KADA Connect | Browse Companies";
+  }, []);
 
   return (
     <MainLayout>
@@ -180,7 +205,7 @@ const CompanyPage = () => {
             <Button
               variant="outline"
               size="sm"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs sm:text-sm h-8 sm:h-9"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs sm:text-sm h-8 sm:h-9 cursor-pointer"
               onClick={() => {
                 setSearchTerm("");
                 setSelectedIndustry("all");
@@ -204,13 +229,13 @@ const CompanyPage = () => {
               label="Industry"
               value={selectedIndustry}
               onChange={setSelectedIndustry}
-              items={industries}
+              items={industryOptions}
             />
             <FilterSelect
               label="Tech Role Interest"
               value={selectedTechRole}
               onChange={setSelectedTechRole}
-              items={techRoles}
+              items={techRoleOptions}
             />
           </div>
         </Card>
@@ -235,7 +260,11 @@ const CompanyPage = () => {
                 </span>
               </div>
 
-              <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div
+                className={`transition-opacity duration-500 ${
+                  loading ? "opacity-40" : "opacity-100"
+                } grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`}
+              >
                 {companies.map((company) => (
                   <CompanyCard key={company.id} company={company} />
                 ))}
@@ -300,7 +329,19 @@ const CompanyPage = () => {
             </div>
           )}
 
-          {loading && <LoadingSpinner text="Loading companies..." />}
+          {loading && (
+            <div className="flex flex-col items-center gap-4 my-8">
+              <LoadingSpinner text="Loading companies..." />
+              <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {[...Array(9)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-60 sm:h-72 bg-gray-100 animate-pulse rounded-xl"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="py-24 text-center text-red-500">{error}</div>
@@ -312,91 +353,72 @@ const CompanyPage = () => {
 };
 
 // Reusable Filter Components (Same as TraineePage)
-const FilterInput = ({ label, value, onChange, placeholder }: any) => (
-  <div>
-    <label className="mb-2 block text-xs sm:text-sm font-medium text-gray-700">
-      {label}
-    </label>
-    <input
-      type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
-    />
-  </div>
+export const FilterInput = React.memo(
+  ({ label, value, onChange, placeholder }: any) => (
+    <div>
+      <label className="mb-2 block text-xs sm:text-sm font-medium text-gray-700">
+        {label}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
+      />
+    </div>
+  )
 );
 
-const FilterSelect = ({ label, value, onChange, items }: any) => (
-  <div>
-    <label className="mb-2 block text-xs sm:text-sm font-medium text-gray-700">
-      {label}
-    </label>
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-full">
-        <SelectValue placeholder={`All ${label}`} />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="all">All {label}</SelectItem>
-        {items.map((item: string, i: number) => (
-          <SelectItem key={i} value={item}>
-            {item}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
+export const FilterSelect = React.memo(
+  ({ label, value, onChange, items }: any) => (
+    <div>
+      <label className="mb-2 block text-xs sm:text-sm font-medium text-gray-700">
+        {label}
+      </label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="w-full cursor-pointer">
+          <SelectValue placeholder={`All ${label}`} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All {label}</SelectItem>
+          {items.map((item: string, i: number) => (
+            <SelectItem key={i} value={item}>
+              {item}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
 );
 
-const CompanyCard = ({ company }: { company: Company }) => {
+const CompanyCard = React.memo(({ company }: { company: Company }) => {
   const [isError, setIsError] = useState(false);
-  const handleWebsiteClick = (url?: string) => {
-    if (
-      !url ||
-      !url.trim() ||
-      url.trim() === "-" ||
-      url.trim().toLowerCase() === "n/a"
-    ) {
+
+  const handleWebsiteClick = useCallback((url?: string) => {
+    if (!url || !url.trim() || url === "-" || url.toLowerCase() === "n/a") {
       toast.warning("This company doesn't have a valid website link.");
       return;
     }
-
     let finalUrl = url.trim();
-
-    finalUrl = finalUrl.replace(/^(https?:\/\/)?(www\.)?(-|#)+$/i, "").trim();
-
-    if (!finalUrl || finalUrl === "-" || finalUrl.toLowerCase() === "n/a") {
-      toast.warning("This company doesn't have a valid website link.");
-      return;
-    }
-
-    if (!/^https?:\/\//i.test(finalUrl)) {
-      finalUrl = `https://${finalUrl}`;
-    }
-
-    if (/^https?:\/\/[-.]+$/i.test(finalUrl)) {
-      toast.warning("Invalid website link format.");
-      return;
-    }
-
-    try {
-      window.open(finalUrl, "_blank", "noopener,noreferrer");
-    } catch {
-      toast.error("Unable to open the website link.");
-    }
-  };
+    if (!/^https?:\/\//i.test(finalUrl)) finalUrl = `https://${finalUrl}`;
+    window.open(finalUrl, "_blank", "noopener,noreferrer");
+  }, []);
 
   return (
     <Card className="group flex flex-col justify-between border-0 hover:shadow-lg transition-all duration-300 rounded-xl bg-white shadow-sm h-full">
       <div className="p-4 sm:p-5 flex flex-col h-full">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left sm:gap-4 gap-3 mb-3 sm:mb-4">
           {company.logo && !isError ? (
             <img
-              {...getImageProps(company.logo, "company")}
+              src={company.logo}
               alt={company.companyName}
-              className="w-24 h-24 sm:w-16 sm:h-16 rounded-xl object-cover group-hover:scale-105 transition-transform duration-300"
               onError={() => setIsError(true)}
               loading="lazy"
+              className="w-24 h-24 sm:w-16 sm:h-16 rounded-xl object-cover bg-gray-100 transition-all duration-500 ease-out group-hover:scale-105 opacity-0"
+              onLoad={(e) => (e.currentTarget.style.opacity = "1")}
             />
           ) : (
             <div className="w-20 h-20 sm:w-16 sm:h-16 flex items-center justify-center bg-gray-50 rounded-xl">
@@ -429,6 +451,7 @@ const CompanyCard = ({ company }: { company: Company }) => {
           </div>
         </div>
 
+        {/* Summary */}
         {company.companySummary && (
           <div className="mb-3 sm:mb-4 pb-3 border-b border-gray-100">
             <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
@@ -437,9 +460,10 @@ const CompanyCard = ({ company }: { company: Company }) => {
           </div>
         )}
 
+        {/* Tech Roles */}
         {company.techRoles && (
-          <div className="mb-2.5 sm:mb-3">
-            <p className="text-xs font-medium text-gray-500 mb-1.5 sm:mb-2">
+          <div className="mb-3">
+            <p className="text-xs font-medium text-gray-500 mb-1.5">
               Interested Tech Roles
             </p>
             <div className="flex flex-wrap gap-1 sm:gap-1.5">
@@ -457,9 +481,10 @@ const CompanyCard = ({ company }: { company: Company }) => {
           </div>
         )}
 
+        {/* Skills */}
         {company.preferredSkillsets && (
-          <div className="mb-3 sm:mb-4">
-            <p className="text-xs font-medium text-gray-500 mb-1.5 sm:mb-2">
+          <div className="mb-3">
+            <p className="text-xs font-medium text-gray-500 mb-1.5">
               Preferred Skills
             </p>
             <div className="flex flex-wrap gap-1 sm:gap-1.5">
@@ -483,63 +508,60 @@ const CompanyCard = ({ company }: { company: Company }) => {
 
         {/* Contact Info */}
         {company.contactInfoVisible && (
-          <div className="mt-2 sm:mt-3 mb-3 sm:mb-4 border-t border-gray-100 pt-3">
-            <p className="text-xs font-medium text-gray-500 mb-2">
+          <div className="mt-3 pt-3 border-t border-gray-100 space-y-2 text-sm text-gray-700 mb-5">
+            <p className="text-xs font-medium text-gray-500">
               Contact Information
             </p>
-            <div className="space-y-1 text-sm text-gray-700">
-              {company.contactPerson && (
-                <p className="flex items-center gap-2">
-                  <span className="font-medium">{company.contactPerson}</span>
-                </p>
-              )}
-              {company.contactEmail && (
-                <p
-                  className="flex items-center gap-2 text-primary hover:underline break-all cursor-pointer"
-                  onClick={() =>
-                    window.open(`mailto:${company.contactEmail}`, "_blank")
+
+            {company.contactPerson && (
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-gray-500" />
+                <span className="font-medium text-gray-800">
+                  {company.contactPerson}
+                </span>
+              </div>
+            )}
+
+            {company.contactEmail && (
+              <p
+                className="flex items-center gap-2 text-primary hover:underline cursor-pointer break-all"
+                onClick={() =>
+                  window.open(`mailto:${company.contactEmail}`, "_blank")
+                }
+              >
+                <Mail className="w-4 h-4 text-primary" />
+                {company.contactEmail}
+              </p>
+            )}
+
+            {company.contactPhone && (
+              <p
+                className="flex items-center gap-2 text-primary hover:underline cursor-pointer"
+                onClick={() => {
+                  let phone = company.contactPhone?.trim() ?? "";
+                  if (!phone) return;
+                  phone = phone.replace(/[^0-9+]/g, "");
+                  if (!phone.startsWith("+")) {
+                    if (phone.startsWith("0")) phone = "+62" + phone.slice(1);
+                    else if (phone.startsWith("62")) phone = "+" + phone;
+                    else phone = "+62" + phone;
                   }
-                >
-                  📧 {company.contactEmail}
-                </p>
-              )}
-              {company.contactPhone && (
-                <p
-                  className="flex items-center gap-2 text-primary hover:underline cursor-pointer"
-                  onClick={() => {
-                    let phone = company.contactPhone?.trim() ?? "";
-                    if (!phone) return;
-
-                    phone = phone.replace(/[^0-9+]/g, "");
-
-                    const hasCountryCode = phone.startsWith("+");
-
-                    if (!hasCountryCode) {
-                      if (phone.startsWith("0")) {
-                        phone = "+62" + phone.slice(1);
-                      } else if (phone.startsWith("62")) {
-                        phone = "+" + phone;
-                      } else {
-                        // fallback kalau format aneh (misal 812...)
-                        phone = "+62" + phone;
-                      }
-                    }
-
-                    const waNumber = phone.replace("+", "");
-
-                    window.open(
-                      `https://wa.me/${waNumber}`,
-                      "_blank",
-                      "noopener,noreferrer"
-                    );
-                  }}
-                >
-                  📞 {company.contactPhone}
-                </p>
-              )}
-            </div>
+                  const waNumber = phone.replace("+", "");
+                  window.open(
+                    `https://wa.me/${waNumber}`,
+                    "_blank",
+                    "noopener,noreferrer"
+                  );
+                }}
+              >
+                <Phone className="w-4 h-4 text-primary" />
+                {company.contactPhone}
+              </p>
+            )}
           </div>
         )}
+
+        {/* Footer Button */}
         <Button
           variant="default"
           onClick={() => handleWebsiteClick(company.website)}
@@ -551,6 +573,6 @@ const CompanyCard = ({ company }: { company: Company }) => {
       </div>
     </Card>
   );
-};
+});
 
 export default CompanyPage;

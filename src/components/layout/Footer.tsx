@@ -1,4 +1,4 @@
-import { Mail, Github, Linkedin } from "lucide-react";
+import { Linkedin, Youtube } from "lucide-react";
 import eliceLogo from "@/assets/logo/eliceCI.svg";
 
 const Footer = () => {
@@ -60,24 +60,18 @@ const Footer = () => {
             </h3>
             <div className="flex gap-3">
               <a
-                className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200"
-                aria-label="Email"
-              >
-                <Mail className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
+                href="https://www.linkedin.com/company/elice/"
                 className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="h-4 w-4" />
               </a>
               <a
-                href="#"
+                href="https://www.youtube.com/@elice_official"
                 className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200"
                 aria-label="GitHub"
               >
-                <Github className="h-4 w-4" />
+                <Youtube className="h-4 w-4" />
               </a>
             </div>
           </div>
@@ -88,7 +82,7 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             {/* Left side */}
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>© 2025 KADA Connect</span>
+              <span>© {new Date().getFullYear()} KADA Connect</span>
               <span className="hidden md:inline text-gray-300">•</span>
               <div className="flex items-center gap-1 text-gray-500">
                 <span>Powered by</span>

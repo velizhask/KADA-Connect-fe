@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import MainLayout from "@/layouts/MainLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { getImageUrl } from "@/utils/imageHelper";
 import { useDebounce } from "@/hooks/useDebounce";
 import { getStatusBadgeClass } from "@/utils/statusBadgeHelper";
 
@@ -69,9 +68,6 @@ const TraineePage = () => {
   const [majors, setMajors] = useState<string[]>([]);
   const [statuses] = useState<string[]>(["Current Trainee", "Alumni"]);
 
-  const [traineeImages, setTraineeImages] = useState<Record<number, string>>(
-    {}
-  );
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -81,8 +77,18 @@ const TraineePage = () => {
   const [selectedSkill, setSelectedSkill] = useState("all");
   const [selectedTrainee, setSelectedTrainee] = useState<Trainee | null>(null);
 
+  const [cache, setCache] = useState<Record<string, Trainee[]>>({});
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const memoizedUniversities = useMemo(
+    () => universities.sort(),
+    [universities]
+  );
+  const memoizedMajors = useMemo(() => majors.sort(), [majors]);
+  const memoizedIndustries = useMemo(() => industries.sort(), [industries]);
+  const memoizedSkillNames = useMemo(() => skills.map((s) => s.name), [skills]);
 
   // Fetch Lookup Data
   useEffect(() => {
@@ -147,7 +153,6 @@ const TraineePage = () => {
     fetchLookups();
   }, []);
 
-  // Fetch Trainee Data
   useEffect(() => {
     fetchTrainees(pagination.page);
   }, [
@@ -161,51 +166,61 @@ const TraineePage = () => {
   ]);
 
   const fetchTrainees = async (page: number) => {
-    try {
-      setLoading(true);
+    const cacheKey = JSON.stringify({
+      page,
+      selectedStatus,
+      selectedUniversity,
+      selectedMajor,
+      selectedIndustry,
+      selectedSkill,
+      debouncedSearch,
+    });
 
+    try {
+      if (cache[cacheKey]) {
+        setTrainees(cache[cacheKey]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       const filters = {
         page,
         limit: pagination.limit,
         ...(selectedStatus !== "all" && { status: selectedStatus }),
-        ...(selectedUniversity !== "all" && { university: selectedUniversity }),
+        ...(selectedUniversity !== "all" && {
+          university: selectedUniversity,
+        }),
         ...(selectedMajor !== "all" && { major: selectedMajor }),
         ...(selectedIndustry !== "all" && { industry: selectedIndustry }),
         ...(selectedSkill !== "all" && { skills: selectedSkill }),
       };
 
       const res =
-        searchTerm.trim().length > 0
-          ? await studentServices.searchStudents(searchTerm, filters)
+        debouncedSearch.trim().length > 0
+          ? await studentServices.searchStudents(debouncedSearch, filters)
           : await studentServices.getStudents(filters);
-
       const fetchedData = res.data?.data || [];
       const fetchedPagination = res.data?.pagination || {};
 
-      // 🔹 SIMPAN DATA DULU TANPA GAMBAR
-      const traineesWithoutImages = fetchedData.map((t: any) => ({
-        ...t,
-        profilePhoto: undefined, // kosong dulu, nanti diisi async
-      }));
+      // 🔹 Simpan hasil ke cache
+      setCache((prev) => ({ ...prev, [cacheKey]: fetchedData }));
 
-      setTrainees(traineesWithoutImages);
+      setTrainees(fetchedData);
 
-      // 🔹 SET PAGINATION
-      setPagination({
-        ...pagination,
+      // 🔹 Update pagination dengan callback aman
+      setPagination((prev) => ({
+        ...prev,
         page: fetchedPagination.page ?? 1,
-        limit: fetchedPagination.limit ?? 12,
+        limit: fetchedPagination.limit ?? prev.limit,
         total: fetchedPagination.total ?? fetchedData.length,
         totalPages:
           fetchedPagination.totalPages ??
           Math.ceil(
             (fetchedPagination.total ?? fetchedData.length) /
-              (fetchedPagination.limit ?? 12)
+              (fetchedPagination.limit ?? prev.limit)
           ),
-      });
-
-      // 🔹 Mulai load gambar di background TANPA nge-block render
-      queueMicrotask(() => loadProfilePhotosAsync(fetchedData));
+      }));
 
       setError(null);
     } catch (err) {
@@ -248,12 +263,15 @@ const TraineePage = () => {
       </div>
     );
   };
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
-      setPagination((prev) => ({ ...prev, page: newPage }));
-    }
-  };
-  const handleLinkClick = (url?: string | null, label?: string) => {
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (newPage >= 1 && newPage <= pagination.totalPages) {
+        setPagination((prev) => ({ ...prev, page: newPage }));
+      }
+    },
+    [pagination.totalPages]
+  );
+  const handleLinkClick = useCallback((url?: string | null, label?: string) => {
     // Handle undefined, null, empty, or '-' input
     if (!url || url.trim() === "" || url.trim() === "-") {
       toast.error(`${label || "This link"} is not available.`);
@@ -301,11 +319,19 @@ const TraineePage = () => {
         toast.error(`Unable to open ${label || "the link"}.`);
       }
     });
-  };
+  }, []);
 
   useEffect(() => {
     setPagination((prev) => ({ ...prev, page: 1 }));
-  }, [searchTerm]);
+    setCache({});
+  }, [
+    searchTerm,
+    selectedStatus,
+    selectedUniversity,
+    selectedMajor,
+    selectedIndustry,
+    selectedSkill,
+  ]);
 
   // Get filtered page numbers for pagination
   const getPageNumbers = () => {
@@ -324,26 +350,9 @@ const TraineePage = () => {
       );
     });
   };
-
-  const loadProfilePhotosAsync = async (fetchedData: any[]) => {
-    const newImages: Record<number, string> = {};
-
-    for (const t of fetchedData) {
-      if (
-        typeof t.profilePhoto === "string" &&
-        t.profilePhoto.startsWith("data:image")
-      ) {
-        newImages[t.id] = t.profilePhoto;
-      } else if (t.profilePhoto) {
-        const url = getImageUrl(t.profilePhoto);
-        if (url) newImages[t.id] = url;
-      }
-    }
-
-    setTimeout(() => {
-      setTraineeImages((prev) => ({ ...prev, ...newImages }));
-    }, 10);
-  };
+   useEffect(() => {
+      document.title = "KADA Connect | Meet the Trainees";
+    }, []);
 
   return (
     <MainLayout>
@@ -368,7 +377,7 @@ const TraineePage = () => {
             <Button
               variant="outline"
               size="sm"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs sm:text-sm h-8 sm:h-9"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs sm:text-sm h-8 sm:h-9 cursor-pointer"
               onClick={() => {
                 setSearchTerm("");
                 setSelectedStatus("all");
@@ -400,26 +409,27 @@ const TraineePage = () => {
             <FilterSelect
               label="University"
               value={selectedUniversity}
-              onChange={(val: string) => setSelectedUniversity(val.trim())}
-              items={universities}
+              onChange={setSelectedUniversity}
+              items={memoizedUniversities}
             />
             <FilterSelect
               label="Major"
               value={selectedMajor}
               onChange={setSelectedMajor}
-              items={majors}
+              items={memoizedMajors}
             />
             <FilterSelect
               label="Industry"
               value={selectedIndustry}
               onChange={setSelectedIndustry}
-              items={industries}
+              items={memoizedIndustries}
             />
+
             <FilterSelect
               label="Tech Skills"
               value={selectedSkill}
               onChange={setSelectedSkill}
-              items={skills.map((s) => s.name)}
+              items={memoizedSkillNames}
             />
           </div>
         </Card>
@@ -443,13 +453,16 @@ const TraineePage = () => {
                   {pagination.total} total)
                 </span>
               </div>
-              <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div
+                className={`transition-opacity duration-500 ${
+                  loading ? "opacity-40" : "opacity-100"
+                } grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`}
+              >
                 {trainees.map((t) => (
                   <TraineeCard
                     key={t.id}
                     trainee={t}
                     onClick={() => setSelectedTrainee(t)}
-                    image={traineeImages[t.id]}
                   />
                 ))}
               </div>
@@ -519,7 +532,19 @@ const TraineePage = () => {
               No trainees match your filters.
             </div>
           )}
-          {loading && <LoadingSpinner text="Loading trainee..." />}
+          {loading && (
+            <div className="flex flex-col items-center gap-4 my-8">
+              <LoadingSpinner text="Loading trainee..." />
+              <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {[...Array(9)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-60 sm:h-72 bg-gray-100 animate-pulse rounded-xl"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="py-24 text-center text-red-500">{error}</div>
@@ -539,11 +564,7 @@ const TraineePage = () => {
                 <DialogHeader className="pb-4">
                   <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
                     <ProfileImage
-                      imageUrl={
-                        traineeImages[selectedTrainee.id] ||
-                        selectedTrainee.profilePhoto ||
-                        ""
-                      }
+                      imageUrl={selectedTrainee.profilePhoto || ""}
                       alt={selectedTrainee.fullName || "Unknown Trainee"}
                     />
 
@@ -665,29 +686,9 @@ const ProfileImage = ({
   imageUrl?: string;
   alt: string;
 }) => {
-  const [finalSrc, setFinalSrc] = useState<string | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [isError, setIsError] = useState(false);
 
-  useEffect(() => {
-    if (!imageUrl) {
-      setFinalSrc(null);
-      return;
-    }
-
-    // Jalankan async tapi biarkan dialog render dulu
-    const timeout = setTimeout(() => {
-      const isBase64 =
-        typeof imageUrl === "string" && imageUrl.startsWith("data:image");
-      const resolvedUrl = isBase64 ? imageUrl : getImageUrl(imageUrl);
-      setFinalSrc(resolvedUrl || null);
-    }, 50); // delay kecil biar UI muncul dulu
-
-    return () => clearTimeout(timeout);
-  }, [imageUrl]);
-
-  // fallback jika error
-  if (!finalSrc || isError) {
+  if (!imageUrl || isError) {
     return (
       <div className="w-24 h-24 flex items-center justify-center bg-gray-50 rounded-xl shrink-0">
         <UserCircle className="w-16 h-16 text-gray-300" />
@@ -696,19 +697,13 @@ const ProfileImage = ({
   }
 
   return (
-    <div className="relative">
-      {!isLoaded && (
-        <div className="absolute inset-0 bg-gray-100 animate-pulse rounded-xl" />
-      )}
+    <div className="relative w-24 h-24 rounded-xl overflow-hidden">
       <img
-        src={finalSrc}
+        src={imageUrl}
         alt={alt}
-        onLoad={() => setIsLoaded(true)}
         onError={() => setIsError(true)}
         loading="lazy"
-        className={`w-36 h-36 rounded-xl object-cover shrink-0 transition-opacity duration-700 ease-out ${
-          isLoaded ? "opacity-100" : "opacity-0"
-        }`}
+        className="w-full h-full object-cover transition-transform duration-300"
       />
     </div>
   );
@@ -729,7 +724,7 @@ const FilterInput = ({ label, value, onChange, placeholder }: any) => (
   </div>
 );
 
-const FilterSelect = ({ label, value, onChange, items }: any) => (
+const FilterSelect = React.memo(({ label, value, onChange, items }: any) => (
   <div>
     <label className="mb-2 block text-xs sm:text-sm font-medium text-gray-700">
       {label}
@@ -748,147 +743,125 @@ const FilterSelect = ({ label, value, onChange, items }: any) => (
       </SelectContent>
     </Select>
   </div>
-);
+));
 
-const TraineeCard = ({
-  trainee,
-  onClick,
-  image,
-}: {
-  trainee: Trainee;
-  onClick: () => void;
-  image?: string;
-}) => {
-  const [isError, setIsError] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+const TraineeCard = React.memo(
+  ({ trainee, onClick }: { trainee: Trainee; onClick: () => void }) => {
+    const [isError, setIsError] = useState(false);
+    const photoUrl = trainee.profilePhoto?.trim();
 
-  // Ambil dari async image prop dulu (base64 yang baru muncul)
-  // fallback ke trainee.profilePhoto (URL biasa / proxy)
-  const photoUrl =
-    image ||
-    (trainee.profilePhoto?.startsWith("data:image")
-      ? undefined
-      : getImageUrl(trainee.profilePhoto));
+    useEffect(() => {
+      setIsError(false);
+    }, [trainee.id, trainee.profilePhoto]);
 
-  const formatName = (name: string) =>
-    name
-      .toLowerCase()
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-
-  return (
-    <Card className="group flex flex-col justify-between border-0 hover:shadow-lg transition-all duration-300 rounded-xl bg-white shadow-sm h-full">
-      <div className="p-4 sm:p-5 flex-1 flex flex-col">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row items-center sm:items-start sm:gap-4 gap-3 mb-4">
-          {/* Foto */}
-          <div className="relative w-24 h-24 sm:w-16 sm:h-16 flex items-center justify-center bg-gray-50 rounded-2xl overflow-hidden">
-            {/* Skeleton shimmer tampil dulu */}
-            {!loaded && (
-              <div className="absolute inset-0 bg-gray-100 animate-pulse rounded-2xl" />
-            )}
-
-            {/* Kalau ada image, load async */}
-            {photoUrl && !isError ? (
-              <img
-                src={photoUrl}
-                alt={trainee.fullName}
-                onLoad={() => setLoaded(true)}
-                onError={() => setIsError(true)}
-                loading="lazy"
-                className={`w-full h-full object-cover transition-opacity duration-700 ${
-                  loaded ? "opacity-100" : "opacity-0"
-                }`}
-              />
-            ) : (
-              // Kalau gagal load, icon muncul tapi card tetap tampil
-              <UserCircle className="w-10 h-10 text-gray-300" />
-            )}
-          </div>
-
-          {/* Nama dan Status */}
-          <div className="flex flex-col items-center sm:items-start text-center sm:text-left mt-2 sm:mt-0">
-            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-1 line-clamp-2 group-hover:text-primary-600 transition-colors">
-              {formatName(trainee.fullName)}
-            </h3>
-            <Badge
-              variant="outline"
-              className={`text-xs ${getStatusBadgeClass(trainee.status)}`}
-            >
-              {trainee.status}
-            </Badge>
-          </div>
-        </div>
-
-        {/* Education Info */}
-        <div className="mb-4 pb-3 border-b border-gray-100 text-left">
-          <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
-            {trainee.university}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">{trainee.major}</p>
-        </div>
-
-        {/* Industry */}
-        {trainee.preferredIndustry && (
-          <div className="mb-3 text-left">
-            <p className="text-xs font-medium text-gray-500 mb-1.5">Industry</p>
-            <div className="flex flex-wrap gap-1 sm:gap-1.5">
-              {trainee.preferredIndustry
-                .split(/\s*,\s*/)
-                .filter(Boolean)
-                .slice(0, 3)
-                .map((ind) => (
-                  <Badge
-                    key={ind}
-                    variant="outline"
-                    className="text-xs border-gray-200 text-gray-600 bg-gray-50"
-                  >
-                    {ind}
-                  </Badge>
-                ))}
+    return (
+      <Card className="group flex flex-col justify-between border-0 hover:shadow-lg transition-all duration-300 rounded-xl bg-white shadow-sm h-full">
+        <div className="p-4 sm:p-5 flex-1 flex flex-col">
+          {/* Header Section */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start sm:gap-4 gap-3 mb-4">
+            <div className="relative w-24 h-24 aspect-square sm:w-16 sm:h-16 bg-gray-50 flex items-center justify-center rounded-2xl overflow-hidden">
+              {photoUrl && !isError ? (
+                <img
+                  src={photoUrl}
+                  alt={trainee.fullName}
+                  onError={() => {
+                    setTimeout(() => setIsError(true), 100);
+                  }}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 opacity-0"
+                  onLoad={(e) => (e.currentTarget.style.opacity = "1")}
+                />
+              ) : (
+                <UserCircle className="w-10 h-10 text-gray-300" />
+              )}
             </div>
-          </div>
-        )}
 
-        {/* Skills */}
-        <div className="mb-3 text-left">
-            <p className="text-xs font-medium text-gray-500 mb-1.5">Tech Skills</p>
-            <div className="flex flex-wrap gap-1 sm:gap-1.5">
- {trainee.techStack
-          ?.split(/[,|]/)
-          .map((tech) => tech.trim())
-          .filter(Boolean)
-          .slice(0, 4)
-          .map((tech, index) => {
-            const shortTech = tech.split(/\s+/).slice(0, 4).join(" ");
-            return (
+            <div className="flex flex-col items-center sm:items-start text-center sm:text-left mt-2 sm:mt-0">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-1 line-clamp-2 group-hover:text-primary-600 transition-colors">
+                {trainee.fullName}
+              </h3>
               <Badge
-                key={`${tech}-${index}`}
-                variant="secondary"
-                className="text-xs px-2 my-1 py-1 leading-snug whitespace-normal break-word rounded-2xl"
-                title={tech}
+                variant="outline"
+                className={`text-xs ${getStatusBadgeClass(trainee.status)}`}
               >
-                {shortTech}
+                {trainee.status}
               </Badge>
-            );
-          })}
             </div>
-       </div>
-      </div>
+          </div>
 
-      {/* Footer Button */}
-      <div className="p-4 sm:p-5 pt-0 text-left">
-        <Button
-          variant="default"
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-xs sm:text-sm font-medium cursor-pointer"
-          onClick={onClick}
-        >
-          View Full Profile
-        </Button>
-      </div>
-    </Card>
-  );
-};
+          {/* Education Info */}
+          <div className="mb-4 pb-3 border-b border-gray-100 text-left">
+            <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
+              {trainee.university}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">{trainee.major}</p>
+          </div>
+
+          {/* Industry */}
+          {trainee.preferredIndustry && (
+            <div className="mb-3 text-left">
+              <p className="text-xs font-medium text-gray-500 mb-1.5">
+                Industry
+              </p>
+              <div className="flex flex-wrap gap-1 sm:gap-1.5">
+                {trainee.preferredIndustry
+                  .split(/\s*,\s*/)
+                  .filter(Boolean)
+                  .slice(0, 3)
+                  .map((ind) => (
+                    <Badge
+                      key={ind}
+                      variant="outline"
+                      className="text-xs border-gray-200 text-gray-600 bg-gray-50"
+                    >
+                      {ind}
+                    </Badge>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Skills */}
+          {trainee.techStack && (
+            <div className="mb-3 text-left">
+              <p className="text-xs font-medium text-gray-500 mb-1.5">
+                Tech Skills
+              </p>
+              <div className="flex flex-wrap gap-1 sm:gap-1.5">
+                {trainee.techStack
+                  .split(/[,|]/)
+                  .map((tech) => tech.trim())
+                  .filter(Boolean)
+                  .slice(0, 4)
+                  .map((tech, index) => (
+                    <Badge
+                      key={`${tech}-${index}`}
+                      variant="secondary"
+                      className="text-xs px-2 my-1 py-1 leading-snug rounded-2xl"
+                      title={tech}
+                    >
+                      {tech}
+                    </Badge>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Button */}
+        <div className="p-4 sm:p-5 pt-0 text-left">
+          <Button
+            variant="default"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-xs sm:text-sm font-medium cursor-pointer"
+            onClick={onClick}
+          >
+            View Full Profile
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+);
 
 export default TraineePage;

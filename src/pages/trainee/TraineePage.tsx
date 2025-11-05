@@ -350,9 +350,9 @@ const TraineePage = () => {
       );
     });
   };
-   useEffect(() => {
-      document.title = "KADA Connect | Meet the Trainees";
-    }, []);
+  useEffect(() => {
+    document.title = "KADA Connect | Meet the Trainees";
+  }, []);
 
   return (
     <MainLayout>
@@ -822,7 +822,6 @@ const TraineeCard = React.memo(
             </div>
           )}
 
-          {/* Skills */}
           {trainee.techStack && (
             <div className="mb-3 text-left">
               <p className="text-xs font-medium text-gray-500 mb-1.5">
@@ -833,17 +832,26 @@ const TraineeCard = React.memo(
                   .split(/[,|]/)
                   .map((tech) => tech.trim())
                   .filter(Boolean)
-                  .slice(0, 4)
-                  .map((tech, index) => (
-                    <Badge
-                      key={`${tech}-${index}`}
-                      variant="secondary"
-                      className="text-xs px-2 my-1 py-1 leading-snug rounded-2xl"
-                      title={tech}
-                    >
-                      {tech}
-                    </Badge>
-                  ))}
+                  .slice(0, 4) // limit ke 4 item
+                  .map((tech, index) => {
+                    const showShortened =
+                      trainee.fullName?.toLowerCase() ===
+                      "anggit fasyamtama".toLowerCase();
+
+                    const shortenedTech = showShortened
+                      ? tech.split(" ").slice(0, 2).join(" ")
+                      : tech;
+                    return (
+                      <Badge
+                        key={`${tech}-${index}`}
+                        variant="secondary"
+                        className="text-xs px-2 my-1 py-1 leading-snug rounded-2xl"
+                        title={tech}
+                      >
+                        {shortenedTech}
+                      </Badge>
+                    );
+                  })}
               </div>
             </div>
           )}

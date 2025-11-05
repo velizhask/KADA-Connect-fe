@@ -6,6 +6,7 @@ import HomePage from "./pages/home/HomePage";
 import TraineePage from "./pages/trainee/TraineePage";
 import { ScrollTop } from "./components/common/ScrollTop";
 import NotFoundPage from "./pages/errors/NotFoundPage";
+import KadaTermsOfService from "./pages/home/TermOfServicePage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/companies" element={<CompanyPage />} />
         <Route path="/trainees" element={<TraineePage />} />
+        <Route path="/terms-of-service" element={<KadaTermsOfService />} />
 
 
          <Route path="*" element={<NotFoundPage />} />

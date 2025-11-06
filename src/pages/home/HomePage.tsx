@@ -96,13 +96,30 @@ const googleCalendarLink = generateGoogleCalendarLink(industryVisitEvent);
 
 const HomePage = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    }, 10000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (isPaused) return;
+
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
 
     return () => clearInterval(timer);
+  }, [isPaused]);
+
+  useEffect(() => {
+    const resume = () => setIsPaused(false);
+    window.addEventListener("click", resume);
+    return () => window.removeEventListener("click", resume);
   }, []);
 
   useEffect(() => {
@@ -196,10 +213,10 @@ const HomePage = () => {
                 <TrendingUp className="w-7 h-7 text-primary" />
               </div>
               <div className="text-4xl md:text-5xl font-semibold text-gray-900 mb-2">
-                85%
+                100%
               </div>
               <div className="text-sm font-medium text-gray-600">
-                Placement Rate
+                Completion Rate
               </div>
             </div>
 
@@ -351,71 +368,92 @@ const HomePage = () => {
           </div>
 
           <div className="relative px-2 sm:px-0">
-  <div className="overflow-hidden">
-    <div
-      className="flex transition-transform duration-700 ease-in-out"
-      style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-    >
-      {testimonials.map((testimonial) => (
-        <div
-          key={testimonial.id}
-          className="w-full shrink-0 px-2 sm:px-4"
-        >
-          <Card className="p-6 sm:p-8 md:p-10 h-full">
-            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-6">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden shrink-0">
-                <img
-                  src={testimonial.avatarSrc}
-                  alt={testimonial.name}
-                  className="object-cover w-full h-full"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-base sm:text-lg text-gray-900 mb-1">
-                  {testimonial.name}
-                </h4>
-                <p className="text-sm text-gray-600 font-medium">
-                  {testimonial.role}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {testimonial.about}
-                </p>
-              </div>
-              <div className="flex gap-1 sm:self-start">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="h-4 w-4 sm:h-5 sm:w-5 fill-yellow-400 text-yellow-400"
-                  />
+            <div className="overflow-hidden">
+              <div
+                className="flex transition-transform duration-700 ease-in-out"
+                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+              >
+                {testimonials.map((testimonial) => (
+                  <div
+                    key={testimonial.id}
+                    className="w-full shrink-0 px-2 sm:px-4"
+                  >
+                    <Card className="p-6 sm:p-8 md:p-10 h-full">
+                      <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 sm:gap-6 mb-6">
+                        {/* Avatar + Text */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 flex-1">
+                          {/* Avatar */}
+                          <div className="w-24 h-24 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-200 shrink-0 mx-auto sm:mx-0">
+                            <img
+                              src={testimonial.avatarSrc}
+                              alt={testimonial.name}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+
+                          {/* Text */}
+                          <div className="flex flex-col min-w-0 text-center sm:text-left">
+                            <h4 className="font-semibold text-lg sm:text-xl text-gray-900">
+                              {testimonial.name}
+                            </h4>
+                            <p className="text-base text-gray-600 font-medium">
+                              {testimonial.role}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {testimonial.about}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Stars (desktop right, mobile below) */}
+                        <div
+                          className="
+    flex gap-1 
+    order-2 sm:order-0 
+    justify-center sm:justify-end 
+    w-full sm:w-auto
+    mt-3 sm:mt-0
+  "
+                        >
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className="h-5 w-5 sm:h-6 sm:w-6 fill-yellow-400 text-yellow-400"
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Testimonial text */}
+                      <p className="text-gray-700 text-lg sm:text-xl leading-relaxed text-center sm:text-left">
+                        "{testimonial.text}"
+                      </p>
+                    </Card>
+                  </div>
                 ))}
               </div>
             </div>
-            <p className="text-gray-700 text-base sm:text-lg leading-relaxed flex-grow">
-              "{testimonial.text}"
-            </p>
-          </Card>
-        </div>
-      ))}
-    </div>
-  </div>
 
-  {/* Dots Indicator */}
-  <div className="flex justify-center gap-2 sm:gap-3 mt-8 sm:mt-10">
-    {testimonials.map((_, index) => (
-      <button
-        key={index}
-        onClick={() => setCurrentIndex(index)}
-        className={`h-2 sm:h-2.5 rounded-full transition-all ${
-          index === currentIndex
-            ? "w-8 sm:w-10 bg-primary"
-            : "w-2 sm:w-2.5 bg-gray-300 hover:bg-gray-400"
-        }`}
-        aria-label={`Go to testimonial ${index + 1}`}
-      />
-    ))}
-  </div>
-</div>
-
+            {/* Dots Indicator */}
+            <div className="flex justify-center gap-2 sm:gap-3 mt-8 sm:mt-10">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => {
+                    e.stopPropagation(); 
+                    setCurrentIndex(index);
+                    setIsPaused(true);
+                  }}
+                  className={`h-2 sm:h-2.5 rounded-full transition-all ${
+                    index === currentIndex
+                      ? "w-8 sm:w-10 bg-primary"
+                      : "w-2 sm:w-2.5 bg-gray-300 hover:bg-gray-400"
+                  }`}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

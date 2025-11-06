@@ -98,6 +98,7 @@ const Footer = () => {
             {/* Right side */}
             <div className="flex items-center gap-4 text-sm">
               <Link
+               target="_blank"
                 to="/terms-of-service?tab=privacy"
                 className="text-gray-600 hover:text-primary transition-colors duration-200"
               >
@@ -105,6 +106,7 @@ const Footer = () => {
               </Link>
               <span className="text-gray-300">•</span>
               <Link
+               target="_blank"
                 to="/terms-of-service?tab=terms"
                 className="text-gray-600 hover:text-primary transition-colors duration-200"
               >

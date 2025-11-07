@@ -8,9 +8,8 @@ import {
   Star,
   ArrowRight,
   Users,
-  TrendingUp,
-  Globe,
   Briefcase,
+  Layers,
 } from "lucide-react";
 import MainLayout from "@/layouts/MainLayout";
 import { useState, useEffect } from "react";
@@ -30,6 +29,7 @@ import eliceLogo from "@/assets/logo/eliceCI.svg";
 import kimiaFarmLogo from "@/assets/logo/kimiafarm.png";
 import nipaLogo from "@/assets/logo/nipa.png";
 import komdigiLogo from "@/assets/logo/komdigi.png";
+import { generateGoogleCalendarLink } from "@/utils/addToCalendar";
 
 const testimonials = [
   {
@@ -77,19 +77,6 @@ const industryVisitEvent = {
     "Join networking, company presentations, and one-on-one meetings with industry leaders.",
   startTime: "2025-11-12T09:00:00", // ISO format
   endTime: "2025-11-12T17:00:00",
-};
-
-const generateGoogleCalendarLink = (event: typeof industryVisitEvent) => {
-  const { title, location, description, startTime, endTime } = event;
-
-  const formattedStart = startTime.replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
-  const formattedEnd = endTime.replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
-
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-    title
-  )}&dates=${formattedStart}/${formattedEnd}&details=${encodeURIComponent(
-    description
-  )}&location=${encodeURIComponent(location)}`;
 };
 
 const googleCalendarLink = generateGoogleCalendarLink(industryVisitEvent);
@@ -189,10 +176,10 @@ const HomePage = () => {
                 <Building2 className="w-7 h-7 text-primary" />
               </div>
               <div className="text-4xl md:text-5xl font-semibold text-gray-900 mb-2">
-                20+
+                10+
               </div>
               <div className="text-sm font-medium text-gray-600">
-                Partner Companies
+                Guest Companies
               </div>
             </div>
 
@@ -210,7 +197,7 @@ const HomePage = () => {
 
             <div className="text-center group">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
-                <TrendingUp className="w-7 h-7 text-primary" />
+                <GraduationCap className="w-7 h-7 text-primary" />
               </div>
               <div className="text-4xl md:text-5xl font-semibold text-gray-900 mb-2">
                 100%
@@ -222,12 +209,14 @@ const HomePage = () => {
 
             <div className="text-center group">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
-                <Globe className="w-7 h-7 text-primary" />
+                <Layers className="w-7 h-7 text-primary" />
               </div>
               <div className="text-4xl md:text-5xl font-semibold text-gray-900 mb-2">
-                5+
+                10+
               </div>
-              <div className="text-sm font-medium text-gray-600">Countries</div>
+              <div className="text-sm font-medium text-gray-600">
+                Capstone Output
+              </div>
             </div>
           </div>
         </div>
@@ -406,15 +395,7 @@ const HomePage = () => {
                         </div>
 
                         {/* Stars (desktop right, mobile below) */}
-                        <div
-                          className="
-    flex gap-1 
-    order-2 sm:order-0 
-    justify-center sm:justify-end 
-    w-full sm:w-auto
-    mt-3 sm:mt-0
-  "
-                        >
+                        <div className="flex gap-1  order-2 sm:order-0 justify-center sm:justify-end w-full sm:w-auto mt-3 sm:mt-0">
                           {[...Array(testimonial.rating)].map((_, i) => (
                             <Star
                               key={i}
@@ -440,7 +421,7 @@ const HomePage = () => {
                 <button
                   key={index}
                   onClick={(e) => {
-                    e.stopPropagation(); 
+                    e.stopPropagation();
                     setCurrentIndex(index);
                     setIsPaused(true);
                   }}

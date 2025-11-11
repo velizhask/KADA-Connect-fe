@@ -42,4 +42,7 @@ export const lookupServices = {
 
   // Get all Majors
   getMajors: () => axiosInstance.get(API_PATHS.LOOKUP.MAJORS),
+
+  getPreferredIndustries: () => axiosInstance.get(API_PATHS.LOOKUP.PREFERRED_INDUSTRIES),
 };
+

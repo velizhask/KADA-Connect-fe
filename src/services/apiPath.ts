@@ -49,5 +49,6 @@ export const API_PATHS = {
     CACHE_STATUS: `${API_BASE_URL}/cache/status`,
     UNIVERSITIES: `${API_BASE_URL}/universities`,
     MAJORS: `${API_BASE_URL}/majors`,
+    PREFERRED_INDUSTRIES: `${API_BASE_URL}/preferred-industries`,
   },
 };

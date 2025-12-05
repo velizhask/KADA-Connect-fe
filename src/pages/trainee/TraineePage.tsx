@@ -24,7 +24,7 @@ const TraineePage: React.FC = () => {
     handlePageChange,
   } = useTrainees(9);
 
-  const { industries, skills, universities, majors } = useLookupFilters();
+  const { preferredIndustries, skills, universities, majors } = useLookupFilters();
 
   const [selectedTrainee, setSelectedTrainee] = useState<any | null>(null);
 
@@ -88,10 +88,10 @@ const TraineePage: React.FC = () => {
               items={majors}
             />
             <FilterSelect
-              label="Industry"
+              label="Preferred Industry"
               value={filters.industry}
               onChange={(val) => updateFilter("industry", val)}
-              items={industries}
+              items={preferredIndustries}
             />
             <FilterSelect
               label="Tech Skills"

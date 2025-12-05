@@ -1,223 +1,235 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Building2, GraduationCap, Home } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  Settings,
+} from "lucide-react";
 import aseanlogo from "@/assets/logo/aseanlogo.png";
+import { useAuthStore } from "@/auth/store/authStore";
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+const auth = useAuthStore((s) => s.auth);
+const clearAuth = useAuthStore((s) => s.clearAuth);
+const isAuthLoaded = useAuthStore((s) => s.isAuthLoaded);
+
+if (!isAuthLoaded) return null;
+
+const user = auth?.user || null;
+const profile = auth?.profile || null;
+const role = auth?.role || null;
+const isLoggedIn = !!auth?.access_token;
+
+const displayName =
+  profile?.fullName ||
+  user?.user_metadata?.fullName ||
+  user?.email ||
+  "User";
+
+const avatar =
+  profile?.profilePhoto ||
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}`;
+
+
+  const profileLink =
+    role === "admin"
+      ? "/admin/users"
+      : role === "company"
+      ? "/companies/profile"
+      : role === "student"
+      ? "/trainees/profile"
+      : "/";
+
+  // State
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // 🔒 LOGIN FEATURE - future improvement
-  // const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // const navigate = useNavigate();
-
-  // useEffect(() => {
-  //   const user = localStorage.getItem("user");
-  //   setIsLoggedIn(!!user);
-  // }, []);
-
-  // const handleLogout = () => {
-  //   localStorage.removeItem("user");
-  //   navigate("/auth");
-  // };
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const isActive = (path: string) => location.pathname === path;
 
-  // ✅ Auto close on scroll or click outside
+  // Close dropdown if clicked outside
   useEffect(() => {
-    const handleScroll = () => {
-      if (isMenuOpen) setIsMenuOpen(false);
-    };
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsMenuOpen(false);
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsProfileOpen(false);
       }
     };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-    window.addEventListener("scroll", handleScroll);
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isMenuOpen]);
+  const handleLogout = () => {
+    clearAuth();
+    navigate("/login");
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <img src={aseanlogo} alt="KADA Connect Logo" className="w-10" />
+
+        {/* LOGO */}
+        <Link to="/" className="flex items-center gap-2.5">
+          <img src={aseanlogo} className="w-10" />
           <div className="flex flex-col">
-            <span className="text-base font-medium text-gray-900">KADA Connect</span>
-            <span className="text-[10px] text-gray-500 hidden sm:block -mt-0.5">
+            <span className="text-base font-semibold text-gray-900">KADA Connect</span>
+            <span className="text-[10px] text-gray-500 hidden sm:block">
               Korea-ASEAN Digital Academy
             </span>
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
+        {/* DESKTOP NAV (Left) */}
+        <nav className="hidden md:flex items-center gap-2">
           <Link
             to="/"
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              isActive("/")
-                ? "text-primary bg-primary/10"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+              isActive("/") ? "text-primary bg-primary/10" : "text-gray-700 hover:bg-gray-100"
             }`}
           >
             Home
           </Link>
-
-          <Link
-            to="/companies"
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              isActive("/companies")
-                ? "text-primary bg-primary/10"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-            }`}
-          >
-            Companies
-          </Link>
-
-          <Link
-            to="/trainees"
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              isActive("/trainees")
-                ? "text-primary bg-primary/10"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-            }`}
-          >
-            Trainees
-          </Link>
-
-          {/* 🔒 LOGIN FEATURE (future improvement)
-          <div className="ml-2 pl-2 border-l border-gray-200">
-            {isLoggedIn ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  to="/profile/company"
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Profile
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <Link
-                to="/auth"
-                className="px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm"
-              >
-                Login
-              </Link>
-            )}
-          </div>
-          */}
         </nav>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen ? (
-            <X className="h-5 w-5 text-gray-700" />
-          ) : (
-            <Menu className="h-5 w-5 text-gray-700" />
+        {/* RIGHT SIDE (Login OR Avatar) */}
+        <div className="hidden md:flex items-center gap-3">
+
+          {/* If NOT Logged In → Show Login button */}
+          {!isLoggedIn && (
+            <button
+              onClick={() => navigate("/login")}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:bg-primary/80 shadow-sm"
+            >
+              Login
+            </button>
           )}
+
+          {/* If Logged in → Avatar */}
+          {isLoggedIn && (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-gray-100 transition"
+              >
+                <img src={avatar} className="w-9 h-9 rounded-full border object-cover" />
+              </button>
+
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-3 w-64 bg-white shadow-xl rounded-2xl overflow-hidden border animate-fade">
+                  {/* HEADER */}
+                  <div className="flex items-center gap-3 p-4 border-b">
+                    <img src={avatar} className="w-12 h-12 rounded-full" />
+                    <div>
+                      <p className="font-semibold text-gray-900">{displayName}</p>
+                      <p className="text-xs text-gray-600">{user?.email}</p>
+                    </div>
+                  </div>
+
+                  {/* My Profile */}
+                  <Link
+                    to={profileLink}
+                    onClick={() => setIsProfileOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-800"
+                  >
+                    <User className="w-5 h-5" />
+                    My Profile
+                  </Link>
+
+                  {/* Admin Only: Platform Settings */}
+                  {role === "admin" && (
+                    <Link
+                      to="/admin/users"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-800"
+                    >
+                      <Settings className="w-5 h-5" />
+                      Manage Platform
+                    </Link>
+                  )}
+
+                  {/* LOGOUT */}
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-sm text-red-600 w-full border-t"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* MOBILE MENU BUTTON */}
+        <button
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? <X /> : <Menu />}
         </button>
       </div>
 
-      {/* 🔹 Mobile Navigation */}
+      {/* MOBILE MENU */}
       {isMenuOpen && (
-        <div className="relative" ref={menuRef}>
-          <div className="md:hidden fixed top-16 right-0 w-72 h-screen bg-white shadow-xl z-10 animate-in slide-in-from-right duration-300">
-            <div className="flex flex-col h-full p-5 overflow-y-auto">
-              <div className="flex flex-col gap-2 mb-6">
-                <Link
-                  to="/"
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                    isActive("/")
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <Home className="h-4 w-4" />
-                  Home
-                </Link>
+        <div className="md:hidden bg-white shadow-lg px-6 py-4 space-y-4">
+          <Link to="/" className="block text-gray-800 py-2">Home</Link>
 
-                <Link
-                  to="/companies"
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                    isActive("/companies")
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <Building2 className="h-4 w-4" />
-                  Companies
-                </Link>
+          {!isLoggedIn && (
+            <button
+              onClick={() => navigate("/login")}
+              className="w-full py-2 mt-2 rounded-lg text-white bg-primary"
+            >
+              Login
+            </button>
+          )}
 
-                <Link
-                  to="/trainees"
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                    isActive("/trainees")
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <GraduationCap className="h-4 w-4" />
-                  Trainees
-                </Link>
+          {isLoggedIn && (
+            <>
+              <hr />
+
+              <div className="flex items-center gap-3 py-2">
+                <img src={avatar} className="w-10 h-10 rounded-full" />
+                <div>
+                  <p className="text-sm font-semibold">{displayName}</p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                </div>
               </div>
 
-              {/* 🔒 LOGIN FEATURE (future improvement)
-              <div className="h-px bg-gray-200 my-4" />
-              {isLoggedIn ? (
-                <>
-                  <Link
-                    to="/profile/company"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <User className="h-4 w-4" />
-                    My Profile
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                  </button>
-                </>
-              ) : (
+              <Link
+                to={profileLink}
+                className="block py-2 text-gray-700"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                My Profile
+              </Link>
+
+              {role === "admin" && (
                 <Link
-                  to="/auth"
+                  to="/admin/users"
+                  className="block py-2 text-gray-700"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm"
                 >
-                  Login
+                  Manage Platform
                 </Link>
               )}
-              */}
-            </div>
-          </div>
+
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }}
+                className="block py-2 text-red-600"
+              >
+                Logout
+              </button>
+            </>
+          )}
         </div>
       )}
     </header>

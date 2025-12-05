@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_BASE_URL } from "@/services/apiPath";
+import { useAuthStore } from "@/auth/store/authStore";
 
 // Create Axios instance
 const axiosInstance = axios.create({
@@ -14,14 +15,15 @@ const axiosInstance = axios.create({
 // REQUEST INTERCEPTOR
 axiosInstance.interceptors.request.use(
   (config) => {
-    // fetch token form localStorage (next improvement if use auth)
-    const token = localStorage.getItem("access_token");
-    const adminKey = localStorage.getItem("x-admin-key");
+    // ambil auth state langsung dari Zustand (real-time)
+    const auth = useAuthStore.getState().auth;
 
-    // if have header also added
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (auth?.access_token) {
+      config.headers.Authorization = `Bearer ${auth.access_token}`;
     }
+
+    // tetap pakai X-Admin-Key jika ada
+    const adminKey = localStorage.getItem("x-admin-key");
     if (adminKey) {
       config.headers["X-Admin-Key"] = adminKey;
     }
@@ -43,43 +45,45 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // 401 Unauthorized → refresh token
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      try {
-        const refreshToken = localStorage.getItem("refresh_token");
-        if (!refreshToken) {
-          // no auth system will be skip and logout
-          console.warn("No refresh token found — skipping refresh flow.");
-          return Promise.reject(error);
-        }
+      const store = useAuthStore.getState();
+      const auth = store.auth;
 
-        // (plan) if some day have endpoint refresh
+      if (!auth?.refresh_token) {
+        console.warn("No refresh token — skipping refresh flow");
+        store.clearAuth();
+        return Promise.reject(error);
+      }
+
+      try {
         const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refresh_token: refreshToken,
+          refresh_token: auth.refresh_token,
         });
 
         const newToken = res.data?.access_token;
+
         if (newToken) {
-          localStorage.setItem("access_token", newToken);
+          // Update Zustand
+          store.setAuth({
+            ...auth,
+            access_token: newToken,
+          });
+
+          // Inject token ulang ke request awal
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return axiosInstance(originalRequest);
         }
       } catch (refreshError) {
         console.error("Token refresh failed:", refreshError);
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
+        store.clearAuth();
       }
     }
-
-    console.error(
-      `API Error [${error.response.status}]:`,
-      error.response.data?.message || error.message
-    );
 
     return Promise.reject(error);
   }
 );
+
 
 export default axiosInstance;

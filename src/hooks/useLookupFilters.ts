@@ -3,6 +3,8 @@ import { lookupServices } from "@/services/lookupServices";
 
 export const useLookupFilters = () => {
   const [industries, setIndustries] = useState<string[]>([]);
+  const [preferredIndustries, setPreferredIndustries] = useState<string[]>([]);
+
   const [techRoles, setTechRoles] = useState<string[]>([]);
   const [skills, setSkills] = useState<string[]>([]);
   const [universities, setUniversities] = useState<string[]>([]);
@@ -11,14 +13,16 @@ export const useLookupFilters = () => {
   useEffect(() => {
     const fetchLookups = async () => {
       try {
-        const [indRes, techRes, techSkillsRes, univRes, majorsRes] = await Promise.all([
+        const [predIndRes, indRes, techRes, techSkillsRes, univRes, majorsRes] = await Promise.all([
           lookupServices.getPreferredIndustries(),
+          lookupServices.getIndustries(),
           lookupServices.getTechRoles(),
           lookupServices.getPopularTechSkills(),
           lookupServices.getUniversities(),
           lookupServices.getMajors(),
         ]);
 
+        setPreferredIndustries(predIndRes.data?.data || []);
         setIndustries(indRes.data?.data || []);
         setTechRoles(techRes.data?.data || []);
         setSkills(techSkillsRes.data?.data?.map((s: any) => s.name) || []);
@@ -33,6 +37,7 @@ export const useLookupFilters = () => {
   }, []);
 
   return {
+    preferredIndustries,
     industries,
     techRoles,
     skills,

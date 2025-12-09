@@ -11,6 +11,7 @@ export interface StudentProfile {
   fullName: string;
   status: string;
   batch: string | null;
+  email: string | null;
 
   university: string | null;
   major: string | null;
@@ -27,6 +28,7 @@ export interface StudentProfile {
 
   profilePhoto: string | null;
   cvUpload: string | null;
+   completionRate: number | null;
 
   timestamp: string | null;
 }
@@ -51,6 +53,7 @@ function mapApiToStudentProfile(raw: any): StudentProfile {
     fullName: raw.fullName ?? "",
     status: raw.status ?? "",
     batch: raw.batch ?? null,
+    email: raw.email ?? "",
 
     university: raw.university ?? null,
     major: raw.major ?? null,
@@ -68,6 +71,7 @@ function mapApiToStudentProfile(raw: any): StudentProfile {
     profilePhoto: raw.profilePhoto ?? null,
     cvUpload: raw.cvUpload ?? null,
 
+     completionRate: raw.completionRate ?? null,
     timestamp: raw.timestamp ?? null,
   };
 }
@@ -82,6 +86,7 @@ function mapStudentUpdateToPayload(data: Partial<StudentProfile>): any {
   if (data.fullName !== undefined) payload.fullName = data.fullName;
   if (data.status !== undefined) payload.status = data.status;
   if (data.batch !== undefined) payload.batch = data.batch;
+    if (data.email !== undefined) payload.email = data.email;
 
   if (data.university !== undefined) payload.university = data.university;
   if (data.major !== undefined) payload.major = data.major;

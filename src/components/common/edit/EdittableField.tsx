@@ -10,7 +10,7 @@ interface Props {
   onSave: (data: any) => Promise<void>;
 }
 
-export default function EditableField({
+export default function EditTableField({
   label,
   value,
   fieldKey,

@@ -1,0 +1,21 @@
+stages:
+  - build
+
+build_app:
+  stage: build
+  script:
+    # Install dependencies
+    - npm ci
+
+    # Build the application
+    - npm run build
+
+    # Clear public folder before copy (fix cp overwrite error)
+    - if (Test-Path public) { Remove-Item -Recurse -Force public\* }
+
+    # Copy build output to public
+    - cp -r dist/* public/
+
+  artifacts:
+    paths:
+      - public

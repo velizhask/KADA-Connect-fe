@@ -43,6 +43,15 @@ const testimonials = [
   },
   {
     id: 2,
+    name: "Velizha Sandy Kusuma",
+    role: "Full Stack Developer",
+    about: "KADA Alumni Batch 1",
+    rating: 5,
+    text: "The Industry Visit event through KADA Connect was a game-changer. Met amazing companies and got multiple job offers!",
+    avatarSrc: "/story/velizha.jpg",
+  },
+  {
+    id: 3,
     name: "Dhruv Menghani",
     role: "Elice Inc - Developer",
     about: "KADA Alumni Batch 1",
@@ -51,22 +60,13 @@ const testimonials = [
     avatarSrc: "/story/dhruv.png",
   },
   {
-    id: 3,
+    id: 4,
     name: "Samuel Junio Sambuaga",
     role: "Elice Inc - Tech Business Development",
     about: "KADA Alumni Batch 1",
     rating: 5,
     text: "Good and Fun Networking",
     avatarSrc: "/story/samuel.png",
-  },
-  {
-    id: 4,
-    name: "Rizki Pratama",
-    role: "Full Stack Developer",
-    about: "KADA Alumni Batch 1",
-    rating: 5,
-    text: "The Industry Visit event through KADA Connect was a game-changer. Met amazing companies and got multiple job offers!",
-    avatar: "RP",
   },
 ];
 
@@ -416,24 +416,25 @@ const HomePage = () => {
             </div>
 
             {/* Dots Indicator */}
-            <div className="flex justify-center gap-2 sm:gap-3 mt-8 sm:mt-10">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentIndex(index);
-                    setIsPaused(true);
-                  }}
-                  className={`h-2 sm:h-2.5 rounded-full transition-all ${
-                    index === currentIndex
-                      ? "w-8 sm:w-10 bg-primary"
-                      : "w-2 sm:w-2.5 bg-gray-300 hover:bg-gray-400"
-                  }`}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
-            </div>
+           <div className="flex justify-center gap-2 sm:gap-3 mt-8 sm:mt-10">
+  {testimonials.map((_, index) => (
+    <button
+      key={index}
+      onClick={(e) => {
+        e.stopPropagation();
+        setCurrentIndex(index);
+        setIsPaused(true);
+      }}
+      className={`h-2 sm:h-2.5 rounded-full transition-all cursor-pointer ${
+        index === currentIndex
+          ? "w-8 sm:w-10 bg-primary"
+          : "w-2 sm:w-2.5 bg-gray-300 hover:bg-gray-400"
+      }`}
+      aria-label={`Go to testimonial ${index + 1}`}
+    />
+  ))}
+</div>
+
           </div>
         </div>
       </section>

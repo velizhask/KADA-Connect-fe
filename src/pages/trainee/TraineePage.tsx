@@ -24,7 +24,8 @@ const TraineePage: React.FC = () => {
     handlePageChange,
   } = useTrainees(9);
 
-  const { industries, skills, universities, majors } = useLookupFilters();
+  // FIX: gunakan preferredIndustries (dari branch issue41)
+  const { preferredIndustries, skills, universities, majors } = useLookupFilters();
 
   const [selectedTrainee, setSelectedTrainee] = useState<any | null>(null);
 
@@ -52,16 +53,19 @@ const TraineePage: React.FC = () => {
               <Filter className="h-4 w-4 text-primary-600" />
               <span>Filter Trainees</span>
             </div>
+
+            {/* FIX: tambah cursor-pointer */}
             <Button
               variant="outline"
               size="sm"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs sm:text-sm h-8 sm:h-9"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs sm:text-sm h-8 sm:h-9 cursor-pointer"
               onClick={resetFilters}
             >
               Clear Filters
             </Button>
           </div>
 
+          {/* Filters */}
           <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <FilterInput
               label="Search"
@@ -69,30 +73,36 @@ const TraineePage: React.FC = () => {
               onChange={(val) => updateFilter("searchTerm", val)}
               placeholder="Type name or keyword..."
             />
+
             <FilterSelect
               label="Status"
               value={filters.status}
               onChange={(val) => updateFilter("status", val)}
               items={["Current Trainee", "Alumni"]}
             />
+
             <FilterSelect
               label="University"
               value={filters.university}
               onChange={(val) => updateFilter("university", val)}
               items={universities}
             />
+
             <FilterSelect
               label="Major"
               value={filters.major}
               onChange={(val) => updateFilter("major", val)}
               items={majors}
             />
+
+            {/* FIX: gunakan preferredIndustries (bukan industries) */}
             <FilterSelect
-              label="Industry"
+              label="Preferred Industry"
               value={filters.industry}
               onChange={(val) => updateFilter("industry", val)}
-              items={industries}
+              items={preferredIndustries}
             />
+
             <FilterSelect
               label="Tech Skills"
               value={filters.skill}
@@ -109,18 +119,13 @@ const TraineePage: React.FC = () => {
               <div className="mb-4 text-xs sm:text-sm text-muted-foreground px-1">
                 <span className="hidden sm:inline">
                   Showing {(pagination.page - 1) * pagination.limit + 1}–
-                  {Math.min(
-                    pagination.page * pagination.limit,
-                    pagination.total
-                  )}{" "}
+                  {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
                   of {pagination.total} trainees — Page {pagination.page} of{" "}
                   {pagination.totalPages}
                 </span>
               </div>
 
-              <div
-                className={`grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`}
-              >
+              <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {trainees.map((t) => (
                   <TraineeCard
                     key={t.id}
@@ -132,13 +137,11 @@ const TraineePage: React.FC = () => {
 
               {/* Pagination */}
               <div className="w-full mt-6 sm:mt-8 px-2 sm:px-0">
-                <div className="w-full mt-6 sm:mt-8 px-2 sm:px-0">
-                  <Pagination
-                    page={pagination.page}
-                    totalPages={pagination.totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                </div>
+                <Pagination
+                  page={pagination.page}
+                  totalPages={pagination.totalPages}
+                  onPageChange={handlePageChange}
+                />
               </div>
             </>
           )}

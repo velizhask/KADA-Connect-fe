@@ -17,11 +17,11 @@ import PrivacyPolicyModal from "./PrivacyPolicyModal";
 import TermsModal from "./TermsModal";
 import KADALOGO from "@/assets/logo/kadalogo.png";
 import { useNavigate } from "react-router-dom";
-import { authService } from "@/auth/services/authService";
-import { useAuthStore } from "@/auth/store/authStore";
+import { authService } from "@/services/authService";
+import { useAuthStore } from "@/store/authStore";
 
 export default function RegisterTraineeStep1() {
-    const { setAuth } = useAuthStore(); 
+  const { setAuth } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -52,45 +52,43 @@ export default function RegisterTraineeStep1() {
     agreements.terms &&
     agreements.privacy;
 
-const handleNext = async () => {
-  if (!isValid || loading) return;
+  const handleNext = async () => {
+    if (!isValid || loading) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    // REGISTER trainee
-    await authService.registerTrainee(
-      form.fullName,
-      form.email,
-      form.password
-    );
+    try {
+      // REGISTER trainee
+      await authService.registerTrainee(
+        form.fullName,
+        form.email,
+        form.password
+      );
 
-    // LOGIN trainee
-    const res = await authService.login(form.email, form.password);
+      // LOGIN trainee
+      const res = await authService.login(form.email, form.password);
 
-    // SAVE AUTH TO STORE
-    setAuth({
-      access_token: res.access_token,
-      refresh_token: res.refresh_token,
-      user: res.user,
-      profile: res.profile, // trainee only
-      role: res.user?.user_metadata?.role ?? "student",
-    });
+      // SAVE AUTH TO STORE
+      setAuth({
+        accessToken: res.accessToken,
+        refreshToken: res.refreshToken,
+        user: res.user,
+        role: res.user.role,
+      });
 
-    // SAVE STEP1
-    localStorage.setItem(
-      "trainee_step1",
-      JSON.stringify({ fullName: form.fullName, email: form.email })
-    );
+      // SAVE STEP1
+      localStorage.setItem(
+        "trainee_step1",
+        JSON.stringify({ fullName: form.fullName, email: form.email })
+      );
 
-    navigate("/register/trainee/details");
-  } catch (err: any) {
-    alert(err.response?.data?.message || "Failed to create trainee account");
-  } finally {
-    setLoading(false);
-  }
-};
-
+      navigate("/register/trainee/details");
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to create trainee account");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">

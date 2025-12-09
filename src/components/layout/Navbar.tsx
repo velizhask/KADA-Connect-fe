@@ -1,62 +1,69 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  Menu,
-  X,
-  User,
-  LogOut,
-  Settings,
-} from "lucide-react";
+import { Menu, X, User, LogOut, Settings } from "lucide-react";
 import aseanlogo from "@/assets/logo/aseanlogo.png";
-import { useAuthStore } from "@/auth/store/authStore";
+import { useAuthStore } from "@/store/authStore";
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-const auth = useAuthStore((s) => s.auth);
-const clearAuth = useAuthStore((s) => s.clearAuth);
-const isAuthLoaded = useAuthStore((s) => s.isAuthLoaded);
+const {
+  accessToken,
+  user,
+  profile,
+  role,
+  clearAuth,
+  isAuthLoaded,
+} = useAuthStore();
 
 if (!isAuthLoaded) return null;
 
-const user = auth?.user || null;
-const profile = auth?.profile || null;
-const role = auth?.role || null;
-const isLoggedIn = !!auth?.access_token;
+const isLoggedIn = !!accessToken;
 
+// 🔹 Nama
 const displayName =
   profile?.fullName ||
   user?.user_metadata?.fullName ||
   user?.email ||
   "User";
 
+// 🔹 Avatar
 const avatar =
   profile?.profilePhoto ||
   `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}`;
 
+// 🔹 Cek apakah sudah punya profile di BE
+const hasProfile = !!profile;
 
-  const profileLink =
-    role === "admin"
-      ? "/admin/users"
-      : role === "company"
+// 🔹 Tentukan link My Profile
+const profileLink =
+  role === "admin"
+    ? "/admin/users"
+    : role === "company"
+    ? hasProfile
       ? "/companies/profile"
-      : role === "student"
+      : "/register/company/details"
+    : role === "student"
+    ? hasProfile
       ? "/trainees/profile"
-      : "/";
+      : "/register/trainee/details"
+    : "/";
 
-  // State
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Close dropdown if clicked outside
+  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setIsProfileOpen(false);
       }
     };
@@ -70,7 +77,7 @@ const avatar =
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md shadow-sm">
       <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 md:px-6">
 
         {/* LOGO */}
@@ -84,8 +91,10 @@ const avatar =
           </div>
         </Link>
 
-        {/* DESKTOP NAV (Left) */}
-        <nav className="hidden md:flex items-center gap-2">
+        {/* DESKTOP NAV */}
+        <nav className="hidden md:flex items-center gap-3">
+
+          {/* ALWAYS VISIBLE */}
           <Link
             to="/"
             className={`px-4 py-2 rounded-lg text-sm font-medium ${
@@ -94,12 +103,35 @@ const avatar =
           >
             Home
           </Link>
+
+          {/* ONLY SHOW WHEN LOGGED IN */}
+          {isLoggedIn && (
+            <>
+              <Link
+                to="/trainees"
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  isActive("/trainees") ? "text-primary bg-primary/10" : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                Trainees
+              </Link>
+
+              <Link
+                to="/companies"
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  isActive("/companies") ? "text-primary bg-primary/10" : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                Companies
+              </Link>
+            </>
+          )}
         </nav>
 
-        {/* RIGHT SIDE (Login OR Avatar) */}
+        {/* RIGHT AUTH SECTION - DESKTOP */}
         <div className="hidden md:flex items-center gap-3">
 
-          {/* If NOT Logged In → Show Login button */}
+          {/* IF NOT LOGGED IN */}
           {!isLoggedIn && (
             <button
               onClick={() => navigate("/login")}
@@ -109,7 +141,7 @@ const avatar =
             </button>
           )}
 
-          {/* If Logged in → Avatar */}
+          {/* IF LOGGED IN */}
           {isLoggedIn && (
             <div className="relative" ref={dropdownRef}>
               <button
@@ -121,6 +153,7 @@ const avatar =
 
               {isProfileOpen && (
                 <div className="absolute right-0 mt-3 w-64 bg-white shadow-xl rounded-2xl overflow-hidden border animate-fade">
+
                   {/* HEADER */}
                   <div className="flex items-center gap-3 p-4 border-b">
                     <img src={avatar} className="w-12 h-12 rounded-full" />
@@ -140,7 +173,7 @@ const avatar =
                     My Profile
                   </Link>
 
-                  {/* Admin Only: Platform Settings */}
+                  {/* Admin */}
                   {role === "admin" && (
                     <Link
                       to="/admin/users"
@@ -166,7 +199,7 @@ const avatar =
           )}
         </div>
 
-        {/* MOBILE MENU BUTTON */}
+        {/* MOBILE MENU TOGGLE */}
         <button
           className="md:hidden p-2 rounded-lg hover:bg-gray-100"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -178,8 +211,22 @@ const avatar =
       {/* MOBILE MENU */}
       {isMenuOpen && (
         <div className="md:hidden bg-white shadow-lg px-6 py-4 space-y-4">
+
           <Link to="/" className="block text-gray-800 py-2">Home</Link>
 
+          {/* SHOW ONLY WHEN LOGGED IN */}
+          {isLoggedIn && (
+            <>
+              <Link to="/trainees" className="block text-gray-800 py-2">
+                Trainees
+              </Link>
+              <Link to="/companies" className="block text-gray-800 py-2">
+                Companies
+              </Link>
+            </>
+          )}
+
+          {/* GUEST */}
           {!isLoggedIn && (
             <button
               onClick={() => navigate("/login")}
@@ -189,6 +236,7 @@ const avatar =
             </button>
           )}
 
+          {/* LOGGED IN */}
           {isLoggedIn && (
             <>
               <hr />

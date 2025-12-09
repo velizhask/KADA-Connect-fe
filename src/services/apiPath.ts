@@ -17,7 +17,7 @@ export const API_PATHS = {
   // ================================
   AUTH_ME: {
     PROFILE: `${API_BASE_URL}/auth/me/profile`,
-    UPDATE_PROFILE: `${API_BASE_URL}/auth/me/profile`, // PATCH
+    UPDATE_PROFILE: `${API_BASE_URL}/auth/me/profile`, 
     UPLOAD_CV: `${API_BASE_URL}/auth/me/cv`,
     UPLOAD_PHOTO: `${API_BASE_URL}/auth/me/photo`,
     UPLOAD_LOGO: `${API_BASE_URL}/auth/me/logo`,

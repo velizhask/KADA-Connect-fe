@@ -1,89 +1,64 @@
+// src/services/axiosInstance.ts
 import axios from "axios";
 import { API_BASE_URL } from "@/services/apiPath";
-import { useAuthStore } from "@/auth/store/authStore";
+import { useAuthStore } from "@/store/authStore";
 
-// Create Axios instance
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: false, // true if backend use cookie session
+  headers: { "Content-Type": "application/json" },
 });
 
-
+// ======================
 // REQUEST INTERCEPTOR
-axiosInstance.interceptors.request.use(
-  (config) => {
-    // ambil auth state langsung dari Zustand (real-time)
-    const auth = useAuthStore.getState().auth;
+// ======================
+axiosInstance.interceptors.request.use((config) => {
+  const { accessToken } = useAuthStore.getState();
 
-    if (auth?.access_token) {
-      config.headers.Authorization = `Bearer ${auth.access_token}`;
-    }
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
 
-    // tetap pakai X-Admin-Key jika ada
-    const adminKey = localStorage.getItem("x-admin-key");
-    if (adminKey) {
-      config.headers["X-Admin-Key"] = adminKey;
-    }
+  return config;
+});
 
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-
+// ======================
 // RESPONSE INTERCEPTOR
+// ======================
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (res) => res,
   async (error) => {
-    const originalRequest = error.config;
+    const original = error.config;
 
-    if (!error.response) {
-      console.error("Network error:", error.message);
+    if (error.response?.status !== 401 || original._retry) {
       return Promise.reject(error);
     }
 
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    original._retry = true;
 
-      const store = useAuthStore.getState();
-      const auth = store.auth;
+    const { refreshToken, setAuth, clearAuth } = useAuthStore.getState();
 
-      if (!auth?.refresh_token) {
-        console.warn("No refresh token — skipping refresh flow");
-        store.clearAuth();
-        return Promise.reject(error);
-      }
-
-      try {
-        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refresh_token: auth.refresh_token,
-        });
-
-        const newToken = res.data?.access_token;
-
-        if (newToken) {
-          // Update Zustand
-          store.setAuth({
-            ...auth,
-            access_token: newToken,
-          });
-
-          // Inject token ulang ke request awal
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return axiosInstance(originalRequest);
-        }
-      } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
-        store.clearAuth();
-      }
+    if (!refreshToken) {
+      clearAuth();
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    try {
+      const resp = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+        refreshToken,
+      });
+
+      const newToken = resp.data.data.accessToken;
+
+      setAuth({ accessToken: newToken });
+
+      original.headers.Authorization = `Bearer ${newToken}`;
+
+      return axiosInstance(original);
+    } catch {
+      clearAuth();
+      return Promise.reject(error);
+    }
   }
 );
-
 
 export default axiosInstance;

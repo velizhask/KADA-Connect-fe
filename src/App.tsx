@@ -4,8 +4,13 @@ import "@/App.css";
 import HomePage from "@/pages/home/HomePage";
 import CompanyPage from "@/pages/company/CompanyPage";
 import TraineePage from "@/pages/trainee/TraineePage";
-import TraineeProfilePage from "@/pages/trainee/profile/ProfilePage";
-import CompanyProfile from "@/pages/company/profile/ProfilePage";
+
+import TraineeProfilePage from "@/pages/me/TraineeProfile";
+import TraineePublicProfile from "@/pages/trainee/profile/TraineePublicProfile";
+
+import CompanyProfilePage from "@/pages/me/CompanyProfile";
+import CompanyPublicProfile from "@/pages/company/profile/CompanyPublicProfile";
+
 import UserManagement from "@/pages/admin/UserManagement";
 
 import ProjectShowcase from "@/pages/home/ProjectPage";
@@ -50,45 +55,54 @@ function App() {
       <ScrollTop />
 
       <Routes>
-        {/* Public Routes */}
+        {/* ------------------------------------------------------ */}
+        {/* PUBLIC ROUTES (NO LOGIN REQUIRED)                     */}
+        {/* ------------------------------------------------------ */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+
+        {/* Public trainee profile */}
+        <Route path="/trainees/:id" element={<TraineePublicProfile />} />
+
+        {/* Public company profile */}
+        <Route path="/companies/:id" element={<CompanyPublicProfile />} />
+
+        {/* Registration */}
         <Route path="/register" element={<ChooseAccountPage />} />
         <Route path="/register/trainee" element={<RegisterTraineePage />} />
-        <Route
-          path="/register/trainee/details"
-          element={<RegisterTraineeStep2 />}
-        />
+        <Route path="/register/trainee/details" element={<RegisterTraineeStep2 />} />
         <Route path="/register/company" element={<RegisterCompanyStep1 />} />
-        <Route
-          path="/register/company/details"
-          element={<RegisterCompanyStep2 />}
-        />
+        <Route path="/register/company/details" element={<RegisterCompanyStep2 />} />
         <Route path="/register/submitted" element={<RegistrationSubmitted />} />
 
+        {/* Public information */}
         <Route path="/terms-of-service" element={<KadaTermsOfService />} />
         <Route path="/project" element={<ProjectShowcase />} />
         <Route path="/gallery" element={<KADAJourneyPage />} />
         <Route path="/story" element={<SuccessStoryPage />} />
         <Route path="/story/detail" element={<SuccessStoryDetail />} />
 
-        <Route element={<ProtectedRoute adminOnly />}>
+        {/* ------------------------------------------------------ */}
+        {/* ADMIN ROUTES                                          */}
+        {/* ------------------------------------------------------ */}
+        <Route element={<ProtectedRoute adminOnly requireAuth />}>
           <Route path="/admin/users" element={<UserManagement />} />
         </Route>
 
-        {/* Semua user authenticated boleh akses trainees */}
-        <Route element={<ProtectedRoute />}>
+        {/* ------------------------------------------------------ */}
+        {/* AUTHENTICATED USER ROUTES                             */}
+        {/* ------------------------------------------------------ */}
+        <Route element={<ProtectedRoute requireAuth />}>
           <Route path="/trainees" element={<TraineePage />} />
-          <Route path="/trainees/profile" element={<TraineeProfilePage />} />
-        </Route>
+          <Route path="/trainees/me" element={<TraineeProfilePage />} />
 
-        {/* Semua user authenticated boleh akses companies */}
-        <Route element={<ProtectedRoute />}>
           <Route path="/companies" element={<CompanyPage />} />
-          <Route path="/companies/profile" element={<CompanyProfile />} />
+          <Route path="/companies/me" element={<CompanyProfilePage />} />
         </Route>
 
-        {/* NOT FOUND */}
+        {/* ------------------------------------------------------ */}
+        {/* 404 PAGE                                              */}
+        {/* ------------------------------------------------------ */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

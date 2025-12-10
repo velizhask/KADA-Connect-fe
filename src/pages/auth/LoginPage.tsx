@@ -9,8 +9,8 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  CheckCircle,
-  XCircle,
+  CheckIcon,
+  XIcon,
 } from "lucide-react";
 import KADALOGO from "@/assets/logo/kadalogo.png";
 import { useNavigate } from "react-router-dom";
@@ -29,18 +29,12 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
 
-  // ============================
-  // EMAIL VALIDATION
-  // ============================
   const isValidEmail = (email: string) => {
     return /\S+@\S+\.\S+/.test(email);
   };
 
   const emailIsValid = isValidEmail(email);
 
-  // ============================
-  // LOGIN HANDLER
-  // ============================
   const handleLogin = async () => {
     if (!email || !password) {
       toast.error("Please fill in all fields");
@@ -65,9 +59,6 @@ const LoginPage = () => {
         profile: res.profile,
       });
 
-      // =========================================
-      // REDIRECT LOGIC WITH PROFILE CHECK
-      // =========================================
       if (res.role === "student") {
         if (!res.profile) {
           navigate("/register/trainee/details");
@@ -105,9 +96,6 @@ const LoginPage = () => {
     if (e.key === "Enter") handleLogin();
   };
 
-  // =============================================================
-  // UI
-  // =============================================================
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Toaster richColors position="top-center" />
@@ -121,7 +109,7 @@ const LoginPage = () => {
         <h2 className="text-2xl font-semibold text-center mb-4">Login</h2>
 
         <div className="space-y-4">
-          {/* EMAIL FIELD */}
+          {/* email field */}
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
 
@@ -138,17 +126,16 @@ const LoginPage = () => {
               disabled={loading}
             />
 
-            {/* EMAIL VALIDATION ICON */}
             {isEmailTouched &&
               email.length > 0 &&
               (emailIsValid ? (
-                <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-primary w-5 h-5" />
+                <CheckIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 w-5 h-5" />
               ) : (
-                <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 w-5 h-5" />
+                <XIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 w-5 h-5" />
               ))}
           </div>
 
-          {/* PASSWORD FIELD */}
+          {/* password field */}
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
 
@@ -184,14 +171,14 @@ const LoginPage = () => {
             </button>
           </div>
 
-          {/* LOGIN BUTTON */}
+          {/* login button */}
           <Button
             onClick={handleLogin}
             disabled={loading}
             className={`w-full h-12 font-medium transition-all ${
               loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-primary hover:bg-primary/80"
+                ? "bg-gray-400 cursor-progress"
+                : "bg-primary hover:bg-primary/80 cursor-pointer"
             } text-white`}
           >
             {loading ? (
@@ -210,7 +197,7 @@ const LoginPage = () => {
           <span className="text-gray-600">Don't have an account yet? </span>
           <button
             onClick={() => navigate("/register")}
-            className="text-blue-600 hover:underline font-medium"
+            className="text-blue-600 hover:underline font-medium  cursor-pointer"
             disabled={loading}
           >
             Create account

@@ -42,11 +42,11 @@ const profileLink =
     ? "/admin/users"
     : role === "company"
     ? hasProfile
-      ? "/companies/profile"
+      ? "/companies/me"
       : "/register/company/details"
     : role === "student"
     ? hasProfile
-      ? "/trainees/profile"
+      ? "/trainees/me"
       : "/register/trainee/details"
     : "/";
 

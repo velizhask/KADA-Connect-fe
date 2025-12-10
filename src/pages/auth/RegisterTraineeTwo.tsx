@@ -71,20 +71,18 @@ export default function RegisterTraineeStep2() {
       const createdStudent = res.data?.data;
 
       if (createdStudent) {
-        // 🔥 samakan bentuknya dengan hasil login
         setAuth({
           accessToken,
           refreshToken,
           user,
-          role, // "student"
+          role,
           profile: createdStudent,
         });
       }
 
       localStorage.removeItem("trainee_step1");
 
-      // 🔥 langsung arahkan ke profile trainee
-      navigate("/trainees/profile");
+      navigate("/trainees/me");
     } catch (err: any) {
       alert(
         err?.response?.data?.message ||

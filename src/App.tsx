@@ -89,10 +89,10 @@ function App() {
 
         {/* Public information */}
         <Route path="/terms-of-service" element={<KadaTermsOfService />} />
-        <Route path="/project" element={<ProjectShowcase />} />
-        <Route path="/gallery" element={<KADAJourneyPage />} />
-        <Route path="/story" element={<SuccessStoryPage />} />
-        <Route path="/story/detail" element={<SuccessStoryDetail />} />
+        <Route path="/about/project" element={<ProjectShowcase />} />
+        <Route path="/about/gallery" element={<KADAJourneyPage />} />
+        <Route path="/about/story" element={<SuccessStoryPage />} />
+        <Route path="/about/story/detail" element={<SuccessStoryDetail />} />
 
         {/* ADMIN ROUTES                                          */}
         <Route element={<ProtectedRoute adminOnly requireAuth />}>

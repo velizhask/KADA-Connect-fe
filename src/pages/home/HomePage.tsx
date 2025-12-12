@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/shadcn-io/marquee";
 
 import aseanlogo from "@/assets/logo/aseanlogo.png";
+import KADALOGO from "@/assets/logo/kada-logo.png";
 import ksalogo from "@/assets/logo/ksalogo.png";
 import akcfLogo from "@/assets/logo/akcflogo.jpg";
 import tuvnordLogo from "@/assets/logo/tuvnord.svg";
@@ -444,7 +445,7 @@ const HomePage = () => {
         <div className="container px-4 md:px-6 mx-auto max-w-5xl">
           <div className="text-center mb-12">
             <div className="inline-flex  items-center justify-center mb-6">
-              <img src={aseanlogo} alt="KADA Connect Logo" className="w-30" />
+              <img src={KADALOGO} alt="KADA Connect Logo" className="w-50" />
             </div>
             <h2 className="text-3xl md:text-4xl font-medium mb-6">
               About KADA Connect

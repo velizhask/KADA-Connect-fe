@@ -48,11 +48,11 @@ export default function EditTableField({
 
       {!editing ? (
         <div className="flex items-center gap-2 hover:bg-gray-50 rounded px-2 py-1 -mx-2 transition-colors">
-          <span className="text-sm text-gray-900 flex-1 min-w-0 break-words">
+          <span className="text-sm text-gray-900 flex-1 min-w-0 wrap-break-words">
             {value || <span className="text-gray-400 italic">Empty</span>}
           </span>
           <button
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded flex-shrink-0"
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded shrink-0"
             onClick={() => setEditing(true)}
             type="button"
           >

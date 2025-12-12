@@ -9,8 +9,8 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  CheckIcon,
-  XIcon,
+  CheckCircle2Icon,
+  XCircleIcon,
 } from "lucide-react";
 import KADALOGO from "@/assets/logo/kadalogo.png";
 import { useNavigate } from "react-router-dom";
@@ -85,7 +85,7 @@ const LoginPage = () => {
       navigate("/");
     } catch (err: any) {
       toast.error("Login failed", {
-        description: err?.response?.data?.message || "Invalid credentials",
+        description: err?.response?.data?.message,
       });
     } finally {
       setLoading(false);
@@ -129,9 +129,9 @@ const LoginPage = () => {
             {isEmailTouched &&
               email.length > 0 &&
               (emailIsValid ? (
-                <CheckIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 w-5 h-5" />
+                <CheckCircle2Icon className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 w-5 h-5" />
               ) : (
-                <XIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 w-5 h-5" />
+                <XCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 w-5 h-5" />
               ))}
           </div>
 
@@ -193,7 +193,7 @@ const LoginPage = () => {
         </div>
 
         {/* Register link */}
-        <div className="mt-6 text-center text-sm">
+        <div className="text-center text-sm">
           <span className="text-gray-600">Don't have an account yet? </span>
           <button
             onClick={() => navigate("/register")}

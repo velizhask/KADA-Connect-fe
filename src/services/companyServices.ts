@@ -38,19 +38,29 @@ function transformToBackend(data: CompanyPayload) {
     Array.isArray(v) ? v.join(", ") : v || null;
 
   const payload: any = {
-    companyName: data.companyName,
-    companySummary: data.companySummary,
-    industry: transformArray(data.industry),
-    companyWebsite: data.companyWebsite ?? null,
-    techRoles: transformArray(data.techRoles),
-    preferredSkillsets: transformArray(data.preferredSkillsets),
-    contactPersonName: data.contactPersonName,
-    contactEmailAddress: data.contactEmailAddress,
-    contactPhoneNumber: data.contactPhoneNumber,
-    visibleContactInfo: data.contactInfoVisible,
-    emailAddress: data.emailAddress,
-    isVisible: data.isVisible ?? true,
-  };
+  companyName: data.companyName,
+  companySummary: data.companySummary,
+  industry: transformArray(data.industry),
+  companyWebsite: data.companyWebsite ?? null,
+  techRoles: transformArray(data.techRoles),
+  preferredSkillsets: transformArray(data.preferredSkillsets),
+
+  contactPersonName: data.contactPersonName,
+  contactPerson: data.contactPersonName,
+
+  contactEmailAddress: data.contactEmailAddress,
+  contactEmail: data.contactEmailAddress,
+
+  contactPhoneNumber: data.contactPhoneNumber,
+  contactPhone: data.contactPhoneNumber,
+
+  visibleContactInfo: data.contactInfoVisible,
+  contactInfoVisible: data.contactInfoVisible,
+
+  emailAddress: data.emailAddress,
+  isVisible: data.isVisible ?? true,
+};
+
 
   if (data.logo) {
     payload.companyLogo = data.logo;

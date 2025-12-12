@@ -9,6 +9,7 @@ import { Pencil, Phone, Mail, Globe, User, Linkedin } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useCompanyProfileStore } from "@/store/companyProfileStore";
 import EditTableField from "@/components/common/edit/EdittableField";
+import MainLayout from "@/layouts/MainLayout";
 
 // ============================================================
 // MAIN COMPONENT
@@ -26,38 +27,40 @@ export default function CompanyProfile() {
   if (!profile) return <div className="p-8">Loading profile...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* TOGGLE VIEW MODE */}
-      <div className="fixed top-6 right-6 z-50 bg-white rounded-lg shadow-md p-1 border border-gray-200">
-        <div className="flex gap-1">
-          <Button
-            size="sm"
-            variant={viewMode === "edit" ? "default" : "ghost"}
-            onClick={() => setViewMode("edit")}
-          >
-            Edit Mode
-          </Button>
+    <MainLayout>
+      <div className="min-h-screen bg-gray-50 pb-20">
+        {/* TOGGLE VIEW MODE */}
+        <div className="fixed top-6 right-6 z-50 bg-white rounded-lg shadow-md p-1 border border-gray-200">
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant={viewMode === "edit" ? "default" : "ghost"}
+              onClick={() => setViewMode("edit")}
+            >
+              Edit Mode
+            </Button>
 
-          <Button
-            size="sm"
-            variant={viewMode === "public" ? "default" : "ghost"}
-            onClick={() => setViewMode("public")}
-          >
-            Public View
-          </Button>
+            <Button
+              size="sm"
+              variant={viewMode === "public" ? "default" : "ghost"}
+              onClick={() => setViewMode("public")}
+            >
+              Public View
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {viewMode === "edit" ? (
-        <CompanyEdit
-          profile={profile}
-          updateProfile={updateProfile}
-          uploadLogo={uploadLogo}
-        />
-      ) : (
-        <CompanyPublic profile={profile} />
-      )}
-    </div>
+        {viewMode === "edit" ? (
+          <CompanyEdit
+            profile={profile}
+            updateProfile={updateProfile}
+            uploadLogo={uploadLogo}
+          />
+        ) : (
+          <CompanyPublic profile={profile} />
+        )}
+      </div>
+    </MainLayout>
   );
 }
 
@@ -69,12 +72,15 @@ function CompanyEdit({ profile, updateProfile, uploadLogo }: any) {
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       {/* HEADER */}
-      <Card className="mb-6 rounded-2xl shadow-sm border border-gray-200">
+      <Card className="mb-6 rounded-2xl shadow-md border border-gray-100">
         <div className="p-8">
-          <div className="flex flex-col md:flex-row items-start gap-8">
+          <div className="flex flex-col md:flex-row items-start gap-10">
             {/* LOGO */}
             <div className="relative shrink-0">
-              <div className="w-64 h-40 bg-linear-to-br from-purple-600 to-purple-700 rounded-3xl text-white flex items-center justify-center text-4xl font-bold shadow-lg">
+              <div
+                className="w-56 h-40 bg-linear-to-br from-purple-500 to-purple-700 rounded-3xl
+                        flex items-center justify-center text-white text-4xl font-bold shadow-xl"
+              >
                 {profile.logo ? (
                   <img
                     src={profile.logo}
@@ -86,7 +92,11 @@ function CompanyEdit({ profile, updateProfile, uploadLogo }: any) {
                 )}
               </div>
 
-              <label className="absolute bottom-3 right-3 bg-white p-2.5 rounded-full shadow-md cursor-pointer border border-gray-200 hover:bg-gray-50">
+              {/* Upload */}
+              <label
+                className="absolute bottom-3 right-3 bg-white p-3 rounded-full shadow-lg 
+                          border border-gray-200 hover:bg-gray-100 cursor-pointer transition"
+              >
                 <Pencil className="h-4 w-4 text-gray-600" />
                 <input
                   type="file"
@@ -108,15 +118,15 @@ function CompanyEdit({ profile, updateProfile, uploadLogo }: any) {
                 onSave={updateProfile}
               />
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <ContactRowCompact
-                  icon={<Linkedin className="h-4 w-4" />}
+                  icon={<Linkedin className="h-4 w-4 text-blue-600" />}
                   value={profile.linkedin || ""}
                   fieldKey="linkedin"
                   onSave={updateProfile}
                 />
                 <ContactRowCompact
-                  icon={<Globe className="h-4 w-4" />}
+                  icon={<Globe className="h-4 w-4 text-purple-600" />}
                   value={profile.website || "https://"}
                   fieldKey="website"
                   onSave={updateProfile}
@@ -141,11 +151,8 @@ function CompanyEdit({ profile, updateProfile, uploadLogo }: any) {
                 fieldKey="contactInfo.name"
                 onSave={(data: any) =>
                   updateProfile({
-                    contactInfo: {
-                      ...profile.contactInfo,
-                      name: data["contactInfo.name"],
-                    },
-                  })
+  contactPersonName: data["contactInfo.name"],
+})
                 }
               />
 
@@ -156,11 +163,8 @@ function CompanyEdit({ profile, updateProfile, uploadLogo }: any) {
                 fieldKey="contactInfo.phone"
                 onSave={(data: any) =>
                   updateProfile({
-                    contactInfo: {
-                      ...profile.contactInfo,
-                      phone: data["contactInfo.phone"],
-                    },
-                  })
+  contactPhoneNumber: data["contactInfo.phone"],
+})
                 }
               />
 
@@ -171,11 +175,8 @@ function CompanyEdit({ profile, updateProfile, uploadLogo }: any) {
                 fieldKey="contactInfo.email"
                 onSave={(data: any) =>
                   updateProfile({
-                    contactInfo: {
-                      ...profile.contactInfo,
-                      email: data["contactInfo.email"],
-                    },
-                  })
+  contactEmailAddress: data["contactInfo.email"],
+})
                 }
               />
             </div>
@@ -292,13 +293,10 @@ function CompanyEdit({ profile, updateProfile, uploadLogo }: any) {
                 Show Contact Information
               </span>
               <Switch
-                checked={profile.contactVisibility?.enabled}
+                checked={profile.contactInfoVisible}
                 onCheckedChange={(checked) =>
                   updateProfile({
-                    contactVisibility: {
-                      ...profile.contactVisibility,
-                      enabled: checked,
-                    },
+                    contactInfoVisible: checked,
                   })
                 }
               />
@@ -318,42 +316,43 @@ function CompanyPublic({ profile }: any) {
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
       {/* HEADER */}
-      <Card className="rounded-2xl shadow-sm border border-gray-200">
-        <div className="p-8 flex flex-col md:flex-row items-center md:items-start gap-6">
-          <div className="w-64 h-40 bg-linear-to-br from-purple-600 to-purple-700 rounded-3xl text-white flex items-center justify-center text-4xl font-bold shadow-lg shrink-0">
+      <Card className="rounded-2xl shadow-md border border-gray-100">
+        <div className="p-8 flex flex-col md:flex-row items-center gap-10">
+          <div className="w-60 h-40 rounded-3xl bg-linear-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white shadow-lg">
             {profile.logo ? (
               <img
                 src={profile.logo}
-                alt="Logo"
-                className="w-full h-full object-cover rounded-3xl"
+                className="w-full h-full rounded-3xl object-cover"
               />
             ) : (
-              <span>{profile.name?.substring(0, 6) || "Company"}</span>
+              <span className="text-3xl font-bold">
+                {profile.name?.substring(0, 6)}
+              </span>
             )}
           </div>
 
-          <div className="flex-1">
-            <h1 className="text-3xl font-semibold text-gray-900 mb-4">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
               {profile.name}
             </h1>
 
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex gap-3">
               {profile.linkedin && (
                 <a
+                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
                   href={profile.linkedin}
                   target="_blank"
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
                 >
-                  <Linkedin className="h-5 w-5 text-gray-700" />
+                  <Linkedin className="text-blue-600 h-5 w-5" />
                 </a>
               )}
               {profile.website && (
                 <a
+                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
                   href={profile.website}
                   target="_blank"
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
                 >
-                  <Globe className="h-5 w-5 text-gray-700" />
+                  <Globe className="text-purple-600 h-5 w-5" />
                 </a>
               )}
             </div>
@@ -437,10 +436,10 @@ function CompanyPublic({ profile }: any) {
 // ============================================================
 
 const SectionCard = ({ title, children }: any) => (
-  <Card className="rounded-xl shadow-sm border border-gray-200">
+  <Card className="rounded-xl shadow-sm border border-gray-100">
     <div className="p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
-      {children}
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">{title}</h2>
+      <div className="space-y-3">{children}</div>
     </div>
   </Card>
 );
@@ -460,10 +459,13 @@ const ContactRowCompact = ({ icon, value, fieldKey, onSave }: any) => (
 );
 
 const InfoRowWithIcon = ({ icon, label, value, fieldKey, onSave }: any) => (
-  <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+  <div
+    className="flex items-center justify-between p-4 bg-white rounded-xl 
+                  border border-gray-200 hover:border-purple-400 transition"
+  >
     <div className="flex items-center gap-3">
-      <span className="text-gray-500">{icon}</span>
-      <span className="text-sm text-gray-600">{label}</span>
+      <span className="text-purple-600">{icon}</span>
+      <span className="text-sm text-gray-700 font-medium">{label}</span>
     </div>
 
     <EditTableField

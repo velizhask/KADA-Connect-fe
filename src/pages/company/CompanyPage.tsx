@@ -24,7 +24,7 @@ const CompanyPage: React.FC = () => {
     setSelectedIndustry,
     setSelectedTechRole,
     handlePageChange,
-  } = useCompanies(9);
+  } = useCompanies(20);
 
   const { industries, techRoles } = useLookupFilters();
 

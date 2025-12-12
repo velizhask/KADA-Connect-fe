@@ -25,7 +25,6 @@ import RegisterTraineeStep2 from "@/pages/auth/RegisterTraineeTwo";
 import RegisterCompanyStep1 from "@/pages/auth/RegisterCompanyOne";
 import RegisterCompanyStep2 from "@/pages/auth/RegisterCompanyTwo";
 import ChooseAccountPage from "@/pages/auth/ChooseAccountPage";
-import RegistrationSubmitted from "@/pages/auth/RegistrationSubmitted";
 
 import NotFoundPage from "@/pages/errors/NotFoundPage";
 import ProtectedRoute from "@/router/ProtectedRoute";
@@ -33,6 +32,7 @@ import { ScrollTop } from "@/components/common/ScrollTop";
 
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
+import ProfileSetupRoute from "@/router/ProfileSetupRoute";
 
 function App() {
   const loadAuth = useAuthStore((s) => s.loadFromStorage);
@@ -55,9 +55,7 @@ function App() {
       <ScrollTop />
 
       <Routes>
-        {/* ------------------------------------------------------ */}
         {/* PUBLIC ROUTES (NO LOGIN REQUIRED)                     */}
-        {/* ------------------------------------------------------ */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
 
@@ -69,11 +67,25 @@ function App() {
 
         {/* Registration */}
         <Route path="/register" element={<ChooseAccountPage />} />
+
         <Route path="/register/trainee" element={<RegisterTraineePage />} />
-        <Route path="/register/trainee/details" element={<RegisterTraineeStep2 />} />
+
+        <Route element={<ProfileSetupRoute />}>
+          <Route
+            path="/register/trainee/details"
+            element={<RegisterTraineeStep2 />}
+          />
+        </Route>
+
         <Route path="/register/company" element={<RegisterCompanyStep1 />} />
-        <Route path="/register/company/details" element={<RegisterCompanyStep2 />} />
-        <Route path="/register/submitted" element={<RegistrationSubmitted />} />
+
+        <Route element={<ProfileSetupRoute />}>
+          <Route
+            path="/register/company/details"
+            element={<RegisterCompanyStep2 />}
+          />
+        </Route>
+
 
         {/* Public information */}
         <Route path="/terms-of-service" element={<KadaTermsOfService />} />
@@ -82,16 +94,12 @@ function App() {
         <Route path="/story" element={<SuccessStoryPage />} />
         <Route path="/story/detail" element={<SuccessStoryDetail />} />
 
-        {/* ------------------------------------------------------ */}
         {/* ADMIN ROUTES                                          */}
-        {/* ------------------------------------------------------ */}
         <Route element={<ProtectedRoute adminOnly requireAuth />}>
           <Route path="/admin/users" element={<UserManagement />} />
         </Route>
 
-        {/* ------------------------------------------------------ */}
         {/* AUTHENTICATED USER ROUTES                             */}
-        {/* ------------------------------------------------------ */}
         <Route element={<ProtectedRoute requireAuth />}>
           <Route path="/trainees" element={<TraineePage />} />
           <Route path="/trainees/me" element={<TraineeProfilePage />} />
@@ -100,9 +108,7 @@ function App() {
           <Route path="/companies/me" element={<CompanyProfilePage />} />
         </Route>
 
-        {/* ------------------------------------------------------ */}
         {/* 404 PAGE                                              */}
-        {/* ------------------------------------------------------ */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

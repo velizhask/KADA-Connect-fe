@@ -29,7 +29,7 @@ export default function KADAJourneyPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="relative h-48 md:h-64 bg-gray-800 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40">
+        <div className="absolute inset-0 bg-linear-to-r from-black/60 to-black/40">
           <img 
            src="/story/samuel.png" 
             alt="Team working" 

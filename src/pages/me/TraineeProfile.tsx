@@ -7,9 +7,6 @@ import {
   Linkedin,
   Globe,
   Star,
-  GraduationCap,
-  Briefcase,
-  Calendar,
   Pencil,
 } from "lucide-react";
 
@@ -573,20 +570,6 @@ const ProfilePublic = ({ profile, setViewMode }: any) => {
   );
 };
 
-// ============================================================
-// UI COMPONENTS
-// ============================================================
-
-const SectionCard = ({ title, children }: any) => (
-  <Card className="rounded-lg border shadow-sm">
-    <CardHeader className="pb-3">
-      <CardTitle className="text-base font-semibold text-gray-900">
-        {title}
-      </CardTitle>
-    </CardHeader>
-    <CardContent>{children}</CardContent>
-  </Card>
-);
 
 const PublicSection = ({ title, children }: any) => (
   <Card className="rounded-lg border shadow-sm">
@@ -595,21 +578,6 @@ const PublicSection = ({ title, children }: any) => (
       {children}
     </CardContent>
   </Card>
-);
-
-const InfoCard = ({ icon, label, value, onSave }: any) => (
-  <div className="bg-white rounded-lg p-4 border">
-    <div className="flex items-center gap-2 mb-2">
-      {icon}
-      <span className="text-xs text-gray-600">{label}</span>
-    </div>
-
-    <InlineEdit
-      value={value}
-      placeholder={`Add ${label}`}
-      onSave={(v) => onSave(v)}
-    />
-  </div>
 );
 
 const FieldRow = ({ icon, children }: any) => (

@@ -152,7 +152,7 @@ const profileLink =
               </button>
 
               {isProfileOpen && (
-                <div className="absolute right-0 mt-3 w-64 bg-white shadow-xl rounded-2xl overflow-hidden border animate-fade">
+                <div className="absolute right-0 mt-3 w-auto bg-white shadow-xl rounded-2xl overflow-hidden border-0 animate-fade">
 
                   {/* HEADER */}
                   <div className="flex items-center gap-3 p-4 border-b">

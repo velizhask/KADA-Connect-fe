@@ -1,69 +1,105 @@
 // src/pages/register/RegisterTraineeStep2.tsx
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { GraduationCap, Building2, FileText } from "lucide-react";
+
+import {
+  GraduationCap,
+  Building2,
+  Briefcase,
+  Code,
+  FileText,
+} from "lucide-react";
+
 import KADALOGO from "@/assets/logo/kadalogo.png";
 import { studentServices } from "@/services/studentServices";
 import { useAuthStore } from "@/store/authStore";
-
-type TraineeForm = {
-  university: string;
-  major: string;
-  preferredIndustry: string;
-  techStack: string;
-  employmentStatus: string;
-  status: string;
-  selfIntroduction: string;
-};
 
 export default function RegisterTraineeStep2() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  const [form, setForm] = useState<TraineeForm>({
+  // ======================================================
+  // FORM STATE
+  // ======================================================
+  const [form, setForm] = useState({
     university: "",
     major: "",
-    preferredIndustry: "",
-    techStack: "",
+    preferredIndustries: [] as string[],
+    techStacks: [] as string[],
     employmentStatus: "",
     status: "",
     selfIntroduction: "",
   });
 
-  const update = (key: keyof TraineeForm, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const update = (k: string, v: any) =>
+    setForm((p) => ({ ...p, [k]: v }));
+
+  // ======================================================
+  // TEMP INPUT (ADD–ADD)
+  // ======================================================
+  const [temp, setTemp] = useState({
+    industry: "",
+    tech: "",
+  });
+
+  const add = (key: "preferredIndustries" | "techStacks") => {
+    const mapKey = key === "preferredIndustries" ? "industry" : "tech";
+    const value = temp[mapKey].trim();
+    if (!value) return;
+
+    setForm((prev) => ({
+      ...prev,
+      [key]: [...prev[key], value],
+    }));
+
+    setTemp((prev) => ({ ...prev, [mapKey]: "" }));
   };
 
-  const requiredKeys: (keyof TraineeForm)[] = [
-    "university",
-    "major",
-    "preferredIndustry",
-    "techStack",
-    "employmentStatus",
-    "status",
-  ];
+  const remove = (key: "preferredIndustries" | "techStacks", v: string) => {
+    setForm((prev) => ({
+      ...prev,
+      [key]: prev[key].filter((i) => i !== v),
+    }));
+  };
 
-  const isValid = requiredKeys.every((k) => form[k].trim() !== "");
+  // ======================================================
+  // VALIDATION
+  // ======================================================
+  const isValid =
+    form.university &&
+    form.major &&
+    form.preferredIndustries.length &&
+    form.techStacks.length &&
+    form.employmentStatus &&
+    form.status;
+
+  // ======================================================
+  // SUBMIT
+  // ======================================================
   const handleSubmit = async () => {
     if (!isValid || loading) return;
-
     setLoading(true);
+
     try {
       const { user, accessToken, refreshToken, role, setAuth } =
         useAuthStore.getState();
 
       const payload = {
         fullName: user?.user_metadata?.fullName || "",
-        status: form.status,
-        employmentStatus: form.employmentStatus,
         university: form.university,
         major: form.major,
-        preferredIndustry: form.preferredIndustry,
-        techStack: form.techStack,
+        status: form.status,
+        employmentStatus: form.employmentStatus,
+
+        // ⬇️ ARRAY → STRING (BACKEND SAFE)
+        preferredIndustry: form.preferredIndustries.join(", "),
+        techStack: form.techStacks.join(", "),
+
         selfIntroduction: form.selfIntroduction,
       };
 
@@ -81,7 +117,6 @@ export default function RegisterTraineeStep2() {
       }
 
       localStorage.removeItem("trainee_step1");
-
       navigate("/trainees/me");
     } catch (err: any) {
       alert(
@@ -93,58 +128,48 @@ export default function RegisterTraineeStep2() {
     }
   };
 
+  // ======================================================
+  // RENDER
+  // ======================================================
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-lg p-8 border-0 shadow-none">
-        <div className="flex items-center justify-center mb-4">
-          <img src={KADALOGO} width={120} alt="KADA Logo" />
+        {/* LOGO */}
+        <div className="flex justify-center">
+          <img src={KADALOGO} width={120} />
         </div>
 
-        <h2 className="text-2xl font-semibold text-center">
+        <h2 className="text-2xl font-semibold text-center mb-2">
           Create Trainee Account
         </h2>
-        <p className="text-gray-500 text-sm text-center -mt-1">
-          Create your profile
+        <p className="text-gray-500 text-sm -mt-4 text-center">
+          Complete your profile details
         </p>
 
         <div className="space-y-4 mt-6">
           {/* UNIVERSITY */}
           <div className="relative">
-            <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-5 text-gray-400" />
+            <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <Input
-              placeholder="University *"
+              className="pl-10 h-12"
+              placeholder="University "
               value={form.university}
               onChange={(e) => update("university", e.target.value)}
-              className="h-12 pl-10"
             />
           </div>
 
           {/* MAJOR */}
           <div className="relative">
-            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 text-gray-400" />
+            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <Input
-              placeholder="Major *"
+              className="pl-10 h-12"
+              placeholder="Major"
               value={form.major}
               onChange={(e) => update("major", e.target.value)}
-              className="h-12 pl-10"
             />
           </div>
 
-          {/* PREFERRED INDUSTRY */}
-          <Input
-            placeholder="Preferred Industry *"
-            value={form.preferredIndustry}
-            onChange={(e) => update("preferredIndustry", e.target.value)}
-            className="h-12"
-          />
 
-          {/* TECH STACK */}
-          <Input
-            placeholder="Tech Stack *"
-            value={form.techStack}
-            onChange={(e) => update("techStack", e.target.value)}
-            className="h-12"
-          />
 
           {/* STATUS */}
           <select
@@ -152,7 +177,7 @@ export default function RegisterTraineeStep2() {
             value={form.status}
             onChange={(e) => update("status", e.target.value)}
           >
-            <option value="">Select Status</option>
+            <option value="">Select Status </option>
             <option value="Current Trainee">Current Trainee</option>
             <option value="Alumni">Alumni</option>
           </select>
@@ -163,32 +188,104 @@ export default function RegisterTraineeStep2() {
             value={form.employmentStatus}
             onChange={(e) => update("employmentStatus", e.target.value)}
           >
-            <option value="">Employment Status *</option>
+            <option value="">Employment Status </option>
             <option value="Open to work">Open to work</option>
-            <option value="Looking for internship">
-              Looking for internship
-            </option>
             <option value="Employed">Employed</option>
           </select>
 
           {/* SELF INTRO */}
-          <div>
-            <FileText className="w-5 h-5 mb-1 text-gray-500" />
+          <div className="relative">
+            <FileText className="absolute left-3 top-4 text-gray-400" />
             <Textarea
+              className="pl-10 min-h-[100px]"
               placeholder="Introduce yourself"
               value={form.selfIntroduction}
-              onChange={(e) => update("selfIntroduction", e.target.value)}
-              className="min-h-[100px]"
+              onChange={(e) =>
+                update("selfIntroduction", e.target.value)
+              }
             />
+          </div>
+
+                    {/* PREFERRED INDUSTRY */}
+          <div>
+            <label className="font-medium text-sm">Preferred Industry </label>
+            <div className="flex gap-2 mt-1 relative">
+              <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Input
+                className="pl-10 h-12"
+                placeholder="e.g. FinTech"
+                value={temp.industry}
+                onChange={(e) =>
+                  setTemp({ ...temp, industry: e.target.value })
+                }
+              />
+              <Button onClick={() => add("preferredIndustries")} className="h-12">
+                Add
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mt-2">
+              {form.preferredIndustries.map((v) => (
+                <span
+                  key={v}
+                  className="inline-flex items-center px-3 py-1 rounded-md bg-blue-100 text-blue-700"
+                >
+                  {v}
+                  <button
+                    className="ml-2 text-blue-500 hover:text-blue-700 font-bold"
+                    onClick={() => remove("preferredIndustries", v)}
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* TECH STACK */}
+          <div>
+            <label className="font-medium text-sm">Tech Stack </label>
+            <div className="flex gap-2 mt-1 relative">
+              <Code className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Input
+                className="pl-10 h-12"
+                placeholder="e.g. React"
+                value={temp.tech}
+                onChange={(e) =>
+                  setTemp({ ...temp, tech: e.target.value })
+                }
+              />
+              <Button onClick={() => add("techStacks")} className="h-12">
+                Add
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mt-2">
+              {form.techStacks.map((v) => (
+                <span
+                  key={v}
+                  className="inline-flex items-center px-3 py-1 rounded-md bg-blue-100 text-blue-700"
+                >
+                  {v}
+                  <button
+                    className="ml-2 text-blue-500 hover:text-blue-700 font-bold"
+                    onClick={() => remove("techStacks", v)}
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
+
         <Button
+          className="w-full h-12 mt-6"
           disabled={!isValid || loading}
           onClick={handleSubmit}
-          className="w-full h-12 mt-6 font-medium bg-primary text-white hover:bg-primary/80"
         >
-          {loading ? "Loading..." : "Complete Registration"}
+          {loading ? "Submitting..." : "Complete Registration"}
         </Button>
       </Card>
     </div>

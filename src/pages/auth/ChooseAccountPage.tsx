@@ -8,9 +8,9 @@ import KADALOGO from "@/assets/logo/kadalogo.png";
 export default function ChooseAccountPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [selectedType, setSelectedType] = useState<"company" | "trainee">(
-    "trainee"
-  );
+  const [selectedType, setSelectedType] = useState<
+    "company" | "trainee" | null
+  >(null);
 
   const handleContinue = () => {
     setLoading(true);
@@ -35,7 +35,7 @@ export default function ChooseAccountPage() {
         </h2>
 
         {/* CHECKBOX OPTIONS */}
-        <div className="flex justify-center gap-6 w-full">
+        <div className="flex justify-center gap-6 w-full mb-0">
           {/* Company */}
           <button
             onClick={() => setSelectedType("company")}
@@ -114,14 +114,21 @@ export default function ChooseAccountPage() {
         {/* CONTINUE BUTTON */}
         <Button
           onClick={handleContinue}
-          disabled={loading}
-          className="cursor-pointer w-40 h-12 mb-0 text-lg font-medium bg-purple-600 hover:bg-purple-700 text-white mx-auto"
+          disabled={loading || !selectedType}
+          className={`
+    w-40 h-12 mb-0 text-lg font-medium mx-auto
+    ${
+      !selectedType
+        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+        : "bg-purple-600 hover:bg-purple-700 text-white cursor-pointer"
+    }
+  `}
         >
           Continue
         </Button>
 
         {/* LOGIN LINK */}
-        <div className="mt-0 text-center text-sm">
+        <div className=" text-center text-sm">
           <span className="text-gray-600">Already have an account? </span>
           <button
             onClick={() => navigate("/login")}

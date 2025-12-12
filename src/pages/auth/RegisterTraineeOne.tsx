@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+
 import {
   User,
   Mail,
@@ -12,29 +13,34 @@ import {
   ChevronUp,
   ChevronDown,
   Loader2,
+  CheckCircle2Icon,
+  XCircleIcon,
 } from "lucide-react";
+
 import PrivacyPolicyModal from "./PrivacyPolicyModal";
 import TermsModal from "./TermsModal";
 import KADALOGO from "@/assets/logo/kadalogo.png";
+
 import { useNavigate } from "react-router-dom";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
 
 export default function RegisterTraineeStep1() {
-  const { setAuth } = useAuthStore();
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
+  const { setAuth } = useAuthStore();
 
-  const [showAgreements, setShowAgreements] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isEmailTouched, setIsEmailTouched] = useState(false);
+
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
+  const [showAgreements, setShowAgreements] = useState(true);
   const [agreements, setAgreements] = useState({
     terms: false,
     privacy: false,
   });
-
-  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const [form, setForm] = useState({
     fullName: "",
@@ -45,9 +51,15 @@ export default function RegisterTraineeStep1() {
   const update = (key: string, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  const isValidEmail = (email: string) => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
+
+  const emailIsValid = isValidEmail(form.email);
+
   const isValid =
     form.fullName &&
-    /\S+@\S+\.\S+/.test(form.email) &&
+    emailIsValid &&
     form.password.length >= 8 &&
     agreements.terms &&
     agreements.privacy;
@@ -56,35 +68,38 @@ export default function RegisterTraineeStep1() {
     if (!isValid || loading) return;
 
     setLoading(true);
-
     try {
-      // REGISTER trainee
+      // REGISTER student
       await authService.registerTrainee(
         form.fullName,
         form.email,
         form.password
       );
 
-      // LOGIN trainee
+      // AUTO LOGIN student
       const res = await authService.login(form.email, form.password);
 
-      // SAVE AUTH TO STORE
+      // SAVE AUTH
       setAuth({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
         user: res.user,
-        role: res.user.role,
+        role: res.role,
       });
 
-      // SAVE STEP1
+      // SAVE STEP 1
       localStorage.setItem(
         "trainee_step1",
-        JSON.stringify({ fullName: form.fullName, email: form.email })
+        JSON.stringify({
+          fullName: form.fullName,
+          email: form.email,
+          password: form.password,
+        })
       );
 
       navigate("/register/trainee/details");
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to create trainee account");
+      alert(err?.response?.data?.message || "Failed to create Trainee account");
     } finally {
       setLoading(false);
     }
@@ -92,13 +107,24 @@ export default function RegisterTraineeStep1() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      {showPrivacyModal && (
-        <PrivacyPolicyModal onClose={() => setShowPrivacyModal(false)} />
-      )}
+{showTermsModal && (
+  <TermsModal
+    onClose={() => setShowTermsModal(false)}
+    onAgree={() =>
+      setAgreements((prev) => ({ ...prev, terms: true }))
+    }
+  />
+)}
 
-      {showTermsModal && (
-        <TermsModal onClose={() => setShowTermsModal(false)} />
-      )}
+{showPrivacyModal && (
+  <PrivacyPolicyModal
+    onClose={() => setShowPrivacyModal(false)}
+    onAgree={() =>
+      setAgreements((prev) => ({ ...prev, privacy: true }))
+    }
+  />
+)}
+
 
       <Card className="w-full max-w-lg p-8 border-0 shadow-none">
         {/* LOGO */}
@@ -106,20 +132,18 @@ export default function RegisterTraineeStep1() {
           <img src={KADALOGO} width={120} alt="KADA Logo" />
         </div>
 
-        {/* TITLE */}
         <h2 className="text-2xl font-semibold text-center mb-2">
           Create Trainee Account
         </h2>
-
         <p className="text-gray-500 text-sm text-left -mt-4">
           Enter your personal details
         </p>
 
-        {/* FORM FIELDS */}
+        {/* FORM */}
         <div className="space-y-4">
           {/* FULL NAME */}
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
               placeholder="Full Name"
               className="pl-10 h-12 border-gray-300"
@@ -131,20 +155,32 @@ export default function RegisterTraineeStep1() {
 
           {/* EMAIL */}
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+
             <Input
               placeholder="Email"
               type="email"
-              className="pl-10 h-12 border-gray-300"
+              className="pl-10 pr-10 h-12 border-gray-300"
               value={form.email}
-              onChange={(e) => update("email", e.target.value)}
+              onChange={(e) => {
+                update("email", e.target.value);
+                if (!isEmailTouched) setIsEmailTouched(true);
+              }}
               disabled={loading}
             />
+
+            {isEmailTouched &&
+              form.email.length > 0 &&
+              (emailIsValid ? (
+                <CheckCircle2Icon className="absolute right-3 top-1/2 -translate-y-1/2 text-primary w-5 h-5" />
+              ) : (
+                <XCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 w-5 h-5" />
+              ))}
           </div>
 
           {/* PASSWORD */}
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
               placeholder="Password"
               type={showPassword ? "text" : "password"}
@@ -153,10 +189,11 @@ export default function RegisterTraineeStep1() {
               onChange={(e) => update("password", e.target.value)}
               disabled={loading}
             />
+
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
               disabled={loading}
             >
               {showPassword ? (
@@ -168,20 +205,32 @@ export default function RegisterTraineeStep1() {
           </div>
         </div>
 
-        {/* AGREEMENTS BLOCK */}
-        <div className="w-full bg-gray-50 rounded-xl p-4 space-y-3 cursor-pointer">
+        {/* AGREEMENTS */}
+        <div className="w-full bg-gray-50 rounded-xl p-4 space-y-3">
           <div
             className="flex items-center justify-between cursor-pointer"
             onClick={() => setShowAgreements(!showAgreements)}
           >
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={(e) => e.stopPropagation()}
+            >
               <Checkbox
                 checked={agreements.terms && agreements.privacy}
                 onCheckedChange={(checked) => {
-                  const value = Boolean(checked);
-                  setAgreements({ terms: value, privacy: value });
+                  const v = Boolean(checked);
+
+                  setAgreements({ terms: v, privacy: v });
+
+                  if (v) {
+                    setShowAgreements(false);
+                  } else {
+                    // Jika uncheck → buka lagi
+                    setShowAgreements(true);
+                  }
                 }}
-                disabled={loading}
+                onClick={(e) => e.stopPropagation()}
+                className="cursor-pointer"
               />
               <span className="font-medium">Agree All</span>
             </label>
@@ -194,43 +243,63 @@ export default function RegisterTraineeStep1() {
           </div>
 
           {showAgreements && (
-            <div className="space-y-4 pt-2 mt-5">
-              <div className="flex items-center gap-3 cursor-pointer">
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-3">
                 <Checkbox
                   checked={agreements.terms}
                   onCheckedChange={() =>
-                    setAgreements((prev) => ({ ...prev, terms: !prev.terms }))
+                    setAgreements((prev) => {
+                      const updated = { ...prev, terms: !prev.terms };
+
+                      // Jika kedua agreement sudah true → collapse
+                      if (updated.terms && updated.privacy) {
+                        setShowAgreements(false);
+                      } else {
+                        setShowAgreements(true);
+                      }
+
+                      return updated;
+                    })
                   }
                   disabled={loading}
+                  className="cursor-pointer"
                 />
                 <button
                   type="button"
-                  className="text-sm text-left"
+                  className="text-sm text-black underline cursor-pointer"
                   onClick={() => setShowTermsModal(true)}
                   disabled={loading}
                 >
-                  Terms of Service<span className="text-red-500">*</span>
+                  Terms of Service *
                 </button>
               </div>
 
-              <div className="flex items-center gap-3 cursor-pointer">
+              <div className="flex items-center gap-3">
                 <Checkbox
                   checked={agreements.privacy}
                   onCheckedChange={() =>
-                    setAgreements((prev) => ({
-                      ...prev,
-                      privacy: !prev.privacy,
-                    }))
+                    setAgreements((prev) => {
+                      const updated = { ...prev, privacy: !prev.privacy };
+
+                      if (updated.terms && updated.privacy) {
+                        setShowAgreements(false);
+                      } else {
+                        setShowAgreements(true);
+                      }
+
+                      return updated;
+                    })
                   }
                   disabled={loading}
+                  className="cursor-pointer"
                 />
                 <button
                   type="button"
-                  className="text-sm text-left"
+                  className="text-sm text-black underline cursor-pointer"
                   onClick={() => setShowPrivacyModal(true)}
                   disabled={loading}
                 >
-                  Privacy Policy<span className="text-red-500">*</span>
+                  Privacy Policy *
                 </button>
               </div>
             </div>
@@ -241,10 +310,10 @@ export default function RegisterTraineeStep1() {
         <Button
           disabled={!isValid || loading}
           onClick={handleNext}
-          className={`w-full h-12 font-medium transition-all ${
+          className={`w-full h-12 font-medium ${
             !isValid || loading
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-primary text-white hover:bg-primary/80 active:bg-primary/70"
+              : "bg-primary text-white hover:bg-primary/80 cursor-pointer"
           }`}
         >
           {loading ? (
@@ -253,16 +322,16 @@ export default function RegisterTraineeStep1() {
               Loading...
             </span>
           ) : (
-            "Continue"
+            "Create Account"
           )}
         </Button>
 
         {/* LOGIN LINK */}
-        <div className="mt-6 text-center text-sm">
+        <div className=" text-center text-sm">
           <span className="text-gray-600">Already have an account? </span>
           <button
             onClick={() => navigate("/login")}
-            className="text-blue-600 cursor-pointer font-medium hover:underline underline-offset-2 decoration-blue-600"
+            className="text-blue-600 cursor-pointer  hover:underline font-medium"
           >
             Login
           </button>

@@ -1,18 +1,19 @@
 // ==========================================
-// authMeStore.ts — FINAL VERSION
+// authMeStore.ts — FINAL PATCHED VERSION
 // ==========================================
 
 import { create } from "zustand";
 import { authMeService } from "@/services/authMeServices";
+import { useAuthStore } from "@/store/authStore";
 
 /* ======================================================
-   1) STUDENT PROFILE TYPE
+   NORMALIZER — STUDENT
 ====================================================== */
 export type StudentProfile = {
   id: string;
   fullName: string;
   email: string | null;
-  phone: string | number | null;
+  phone: number | null;
 
   university: string | null;
   major: string | null;
@@ -38,7 +39,7 @@ export type StudentProfile = {
 };
 
 /* ======================================================
-   2) COMPANY PROFILE TYPE
+   NORMALIZER — COMPANY
 ====================================================== */
 export type CompanyProfile = {
   id: string;
@@ -66,8 +67,13 @@ export type CompanyProfile = {
 export type Profile = StudentProfile | CompanyProfile;
 
 /* ======================================================
-   3) NORMALIZER — STUDENT
+   NORMALIZER HELPER
 ====================================================== */
+function unwrapResponse(raw: any) {
+  if (raw?.data && typeof raw.data === "object") return raw.data;
+  return raw;
+}
+
 function normalizeStudent(raw: any): StudentProfile {
   return {
     id: raw.id,
@@ -99,9 +105,6 @@ function normalizeStudent(raw: any): StudentProfile {
   };
 }
 
-/* ======================================================
-   4) NORMALIZER — COMPANY
-====================================================== */
 function normalizeCompany(raw: any): CompanyProfile {
   return {
     id: raw.id,
@@ -110,8 +113,7 @@ function normalizeCompany(raw: any): CompanyProfile {
 
     industry: raw.industry ?? raw.industry_sector ?? null,
     techRoles: raw.techRoles ?? raw.tech_roles_interest ?? null,
-    preferredSkillsets:
-      raw.preferredSkillsets ?? raw.preferred_skillsets ?? null,
+    preferredSkillsets: raw.preferredSkillsets ?? raw.preferred_skillsets ?? null,
 
     website: raw.website ?? raw.company_website_link ?? null,
     logo: raw.logo ?? raw.company_logo ?? null,
@@ -119,20 +121,12 @@ function normalizeCompany(raw: any): CompanyProfile {
     contactPerson: raw.contactPerson ?? raw.contact_person_name ?? null,
     contactEmail: raw.contactEmail ?? raw.contact_email ?? null,
     contactPhone: raw.contactPhone ?? raw.contact_phone_number ?? null,
+
     contactInfoVisible: raw.contactInfoVisible ?? raw.contact_info_visible ?? true,
 
     completionRate: raw.completionRate ?? 0,
     timestamp: raw.timestamp ?? null,
   };
-}
-
-/* ======================================================
-   5) PROFILE AUTO-DETECTOR (ROBUST)
-====================================================== */
-function unwrapResponse(raw: any) {
-  // Handles: { success, data }, { data }, { ...profile }
-  if (raw?.data && typeof raw.data === "object") return raw.data;
-  return raw;
 }
 
 function normalizeProfile(raw: any): Profile {
@@ -159,7 +153,7 @@ function normalizeProfile(raw: any): Profile {
 }
 
 /* ======================================================
-   6) STORE FINAL
+   STORE FINAL
 ====================================================== */
 
 interface AuthMeState {
@@ -178,77 +172,95 @@ export const useAuthMeStore = create<AuthMeState>((set) => ({
   loading: false,
   profile: null,
 
-  /* -------------------------
+  /* --------------------------------
      FETCH PROFILE
-  -------------------------- */
+  --------------------------------- */
   fetchProfile: async () => {
     set({ loading: true });
-
     try {
       const res = await authMeService.getProfile();
       const normalized = normalizeProfile(res.data ?? res);
 
+      // Update authMeStore
       set({
         profile: normalized,
         loading: false,
       });
+
+      // 🔥 WAJIB: Sinkronkan ke AuthStore
+      useAuthStore.getState().setAuth({ profile: normalized });
+
     } catch (err) {
       console.error("Fetch profile failed:", err);
       set({ loading: false });
     }
   },
 
-  /* -------------------------
+  /* --------------------------------
      UPDATE PROFILE
-  -------------------------- */
+  --------------------------------- */
   updateProfile: async (data: any) => {
     try {
       await authMeService.updateProfile(data);
 
-      // Refresh profile
       const res = await authMeService.getProfile();
-      set({ profile: normalizeProfile(res.data ?? res) });
+      const normalized = normalizeProfile(res.data ?? res);
+
+      set({ profile: normalized });
+
+      // 🔥 Sync ke AuthStore
+      useAuthStore.getState().setAuth({ profile: normalized });
+
     } catch (err) {
       console.error("Update profile failed:", err);
     }
   },
 
-  /* -------------------------
+  /* --------------------------------
      UPLOAD CV
-  -------------------------- */
+  --------------------------------- */
   uploadCV: async (file: File) => {
     const form = new FormData();
-    form.append("cv", file);
+     form.append("file", file);
 
     await authMeService.uploadCV(form);
 
     const res = await authMeService.getProfile();
-    set({ profile: normalizeProfile(res.data ?? res) });
+    const normalized = normalizeProfile(res.data ?? res);
+
+    set({ profile: normalized });
+    useAuthStore.getState().setAuth({ profile: normalized });
   },
 
-  /* -------------------------
+  /* --------------------------------
      UPLOAD PHOTO
-  -------------------------- */
+  --------------------------------- */
   uploadPhoto: async (file: File) => {
     const form = new FormData();
-    form.append("photo", file);
+   form.append("file", file);
 
     await authMeService.uploadPhoto(form);
 
     const res = await authMeService.getProfile();
-    set({ profile: normalizeProfile(res.data ?? res) });
+    const normalized = normalizeProfile(res.data ?? res);
+
+    set({ profile: normalized });
+    useAuthStore.getState().setAuth({ profile: normalized });
   },
 
-  /* -------------------------
+  /* --------------------------------
      UPLOAD LOGO
-  -------------------------- */
+  --------------------------------- */
   uploadLogo: async (file: File) => {
     const form = new FormData();
-    form.append("logo", file);
+   form.append("file", file);
 
     await authMeService.uploadLogo(form);
 
     const res = await authMeService.getProfile();
-    set({ profile: normalizeProfile(res.data ?? res) });
+    const normalized = normalizeProfile(res.data ?? res);
+
+    set({ profile: normalized });
+    useAuthStore.getState().setAuth({ profile: normalized });
   },
 }));

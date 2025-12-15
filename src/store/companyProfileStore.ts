@@ -1,27 +1,26 @@
 import { create } from "zustand";
-import axios from "@/services/axiosInstance";
+import axiosInstance from "@/services/axiosInstance";
+import { API_PATHS } from "@/services/apiPath";
 
 export interface CompanyProfile {
   id: string;
-  name: string | null;
-  logo: string | null;
+
+  companyName: string | null;
+  companySummary: string | null;
+
+  industry: string | null;              
+  techRoles: string | null;           
+  preferredSkillsets: string | null;   
+
   website: string | null;
-  status: string | null;
-  linkedin: string | null;
+  logo: string | null;
 
-  contactInfo: {
-    name: string | null;
-    phone: string | null;
-    email: string | null;
-  };
-
+  contactPerson: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
   contactInfoVisible: boolean;
 
-  summary: string | null;
-  sectors: string[];
-  preferredSkills: string[];
-  interestedRoles: string[];
-  completionRate: number;
+  completionRate: number | null;
 }
 
 interface CompanyProfileState {
@@ -34,129 +33,138 @@ interface CompanyProfileState {
   uploadLogo: (file: File) => Promise<void>;
 }
 
-type ApiResponse<T> = {
-  success: boolean;
-  data: T;
-};
-
-/* ===============================
-   MAP API → FE (SINGLE SOURCE)
-================================ */
-function mapApiToCompany(raw: any): CompanyProfile {
-  const parseToArray = (v: any): string[] =>
-    typeof v === "string"
-      ? v.split(",").map((s) => s.trim()).filter(Boolean)
-      : [];
-
+function mapApiToCompanyProfile(raw: any): CompanyProfile {
   return {
     id: raw.id,
-    name: raw.companyName ?? null,
-    logo: raw.logo ?? raw.companyLogo ?? null,
-    website: raw.website ?? raw.companyWebsite ?? null,
-    status: raw.status ?? null,
-    linkedin: raw.linkedin ?? null,
 
-    contactInfo: {
-      name: raw.contactPersonName ?? null,
-      phone: raw.contactPhoneNumber ?? null,
-      email: raw.contactEmailAddress ?? null,
-    },
+    companyName: raw.companyName ?? null,
+    companySummary: raw.companySummary ?? null,
 
+    industry: raw.industry ?? null,
+    techRoles: raw.techRoles ?? null,
+    preferredSkillsets: raw.preferredSkillsets ?? null,
+
+    website: raw.website ?? null,
+    logo: raw.logo ?? null,
+
+    contactPerson: raw.contactPerson ?? null,
+    contactEmail: raw.contactEmail ?? null,
+    contactPhone: raw.contactPhone ?? null,
     contactInfoVisible: raw.contactInfoVisible ?? false,
 
-    summary: raw.companySummary ?? null,
-    sectors: parseToArray(raw.industry),
-    preferredSkills: parseToArray(raw.preferredSkillsets),
-    interestedRoles: parseToArray(raw.techRoles),
-
-    completionRate: raw.completionRate ?? 0,
+    completionRate: raw.completionRate ?? null,
   };
 }
 
-/* ===============================
-   MAP FE → PATCH PAYLOAD
-================================ */
-function mapCompanyToPayload(data: Partial<CompanyProfile>) {
-  const out: any = {};
+function mapCompanyUpdateToPayload(
+  data: Partial<CompanyProfile>
+): any {
+  const payload: any = {};
 
-  if (data.name !== undefined) out.companyName = data.name;
-  if (data.website !== undefined) out.companyWebsite = data.website;
-  if (data.summary !== undefined) out.companySummary = data.summary;
-  if (data.linkedin !== undefined) out.linkedin = data.linkedin;
+  if (data.companyName !== undefined)
+    payload.companyName = data.companyName;
 
-  if (data.contactInfo) {
-    if (data.contactInfo.name !== undefined)
-      out.contactPersonName = data.contactInfo.name;
-    if (data.contactInfo.phone !== undefined)
-      out.contactPhoneNumber = data.contactInfo.phone;
-    if (data.contactInfo.email !== undefined)
-      out.contactEmailAddress = data.contactInfo.email;
-  }
+  if (data.companySummary !== undefined)
+    payload.companySummary = data.companySummary;
 
-  if (data.contactInfoVisible !== undefined) {
-    out.contactInfoVisible = data.contactInfoVisible;
-  }
+  if (data.industry !== undefined)
+    payload.industry = data.industry;
 
-  if (data.sectors !== undefined)
-    out.industry = data.sectors.join(", ");
+  if (data.techRoles !== undefined)
+    payload.techRoles = data.techRoles;
 
-  if (data.preferredSkills !== undefined)
-    out.preferredSkillsets = data.preferredSkills.join(", ");
+  if (data.preferredSkillsets !== undefined)
+    payload.preferredSkillsets = data.preferredSkillsets;
 
-  if (data.interestedRoles !== undefined)
-    out.techRoles = data.interestedRoles.join(", ");
+  if (data.website !== undefined)
+    payload.website = data.website;
 
-  return out;
+  if (data.contactPerson !== undefined)
+    payload.contactPerson = data.contactPerson;
+
+  if (data.contactEmail !== undefined)
+    payload.contactEmail = data.contactEmail;
+
+  if (data.contactPhone !== undefined)
+    payload.contactPhone = data.contactPhone;
+
+  if (data.contactInfoVisible !== undefined)
+    payload.contactInfoVisible = data.contactInfoVisible;
+
+  return payload;
 }
 
-/* ===============================
-   STORE
-================================ */
-export const useCompanyProfileStore = create<CompanyProfileState>()(
+
+export const useCompanyProfileStore = create<CompanyProfileState>(
   (set, get) => ({
     profile: null,
     loading: false,
     error: null,
 
+    // Fetch company profile (auth user)
     fetchProfile: async () => {
       try {
         set({ loading: true, error: null });
-        const res = await axios.get<ApiResponse<any>>("/auth/me/profile");
-        set({ profile: mapApiToCompany(res.data.data) });
+
+        const res = await axiosInstance.get(
+          API_PATHS.AUTH_ME.PROFILE
+        );
+
+        set({ profile: mapApiToCompanyProfile(res.data.data) });
       } catch (err: any) {
-        set({ error: err?.response?.data?.message || "Fetch failed" });
+        set({
+          error:
+            err?.response?.data?.message ||
+            "Failed to fetch company profile",
+        });
       } finally {
         set({ loading: false });
       }
     },
 
+    // Update company profile
     updateProfile: async (data) => {
       try {
         set({ loading: true, error: null });
-        const payload = mapCompanyToPayload(data);
-        const res = await axios.patch<ApiResponse<any>>(
-          "/auth/me/profile",
+
+        const payload = mapCompanyUpdateToPayload(data);
+
+        const res = await axiosInstance.patch(
+          API_PATHS.AUTH_ME.UPDATE_PROFILE,
           payload
         );
-        set({ profile: mapApiToCompany(res.data.data) });
+
+        set({ profile: mapApiToCompanyProfile(res.data.data) });
       } catch (err: any) {
-        set({ error: err?.response?.data?.message || "Update failed" });
+        set({
+          error:
+            err?.response?.data?.message ||
+            "Failed to update company profile",
+        });
       } finally {
         set({ loading: false });
       }
     },
 
-    uploadLogo: async (file) => {
+    // Upload company logo
+    uploadLogo: async (file: File) => {
       try {
-        set({ loading: true, error: null });
         const form = new FormData();
-        form.append("logo", file);
-        await axios.post("/auth/me/logo", form);
+        form.append("file", file);
+
+        await axiosInstance.post(
+          API_PATHS.AUTH_ME.UPLOAD_LOGO,
+          form,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
         await get().fetchProfile();
       } catch (err: any) {
-        set({ error: err?.response?.data?.message || "Upload failed" });
-      } finally {
-        set({ loading: false });
+        set({
+          error:
+            err?.response?.data?.message ||
+            "Failed to upload company logo",
+        });
       }
     },
   })

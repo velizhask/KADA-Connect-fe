@@ -2,9 +2,6 @@ import { create } from "zustand";
 import axiosInstance from "@/services/axiosInstance";
 import { API_PATHS } from "@/services/apiPath";
 
-// ================================
-// TYPE DEFINITIONS — MATCH API 100%
-// ================================
 export interface StudentProfile {
   id: string;
 
@@ -16,8 +13,8 @@ export interface StudentProfile {
   university: string | null;
   major: string | null;
 
-  preferredIndustry: string | null; // single string (not array)
-  techStack: string | null; // string like "JS, TS"
+  preferredIndustry: string | null;
+  techStack: string | null; 
 
   employmentStatus: string | null;
   portfolioLink: string | null;
@@ -44,9 +41,6 @@ interface StudentProfileState {
   uploadCV: (file: File) => Promise<void>;
 }
 
-// ================================
-// API → FRONTEND MAPPER
-// ================================
 function mapApiToStudentProfile(raw: any): StudentProfile {
   return {
     id: raw.id,
@@ -76,10 +70,6 @@ function mapApiToStudentProfile(raw: any): StudentProfile {
   };
 }
 
-// ================================
-// FRONTEND → BACKEND PAYLOAD
-// Hanya kirim field yang berubah
-// ================================
 function mapStudentUpdateToPayload(data: Partial<StudentProfile>): any {
   const payload: any = {};
 
@@ -111,9 +101,6 @@ function mapStudentUpdateToPayload(data: Partial<StudentProfile>): any {
   return payload;
 }
 
-// ================================
-// ZUSTAND STORE
-// ================================
 export const useStudentProfileStore = create<StudentProfileState>((set, get) => ({
   profile: null,
   loading: false,

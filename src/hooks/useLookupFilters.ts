@@ -20,20 +20,27 @@ export const useLookupFilters = () => {
           univRes,
           majorsRes,
         ] = await Promise.all([
-          lookupServices.getPreferredIndustries(),
-          lookupServices.getIndustries(),
-          lookupServices.getTechRoles(),
+          lookupServices.getPopularPreferredIndustries(),
+          lookupServices.getPopularIndustries(),
+          lookupServices.getPopularTechRoles(),
           lookupServices.getPopularTechSkills(),
-          lookupServices.getUniversities(),
-          lookupServices.getMajors(),
+          lookupServices.getPopularUniversities(),
+          lookupServices.getPopularMajors(),
         ]);
 
-        setPreferredIndustries(preferredIndRes.data?.data || []);
-        setIndustries(indRes.data?.data || []);
-        setTechRoles(techRes.data?.data || []);
+        setPreferredIndustries(
+          preferredIndRes.data?.data?.map((i: any) => i.name) || []
+        );
+
+        setIndustries(indRes.data?.data?.map((i: any) => i.name) || []);
+
+        setTechRoles(techRes.data?.data?.map((r: any) => r.name) || []);
+
         setSkills(skillsRes.data?.data?.map((s: any) => s.name) || []);
-        setUniversities(univRes.data?.data || []);
-        setMajors(majorsRes.data?.data || []);
+
+        setUniversities(univRes.data?.data?.map((u: any) => u.name) || []);
+
+        setMajors(majorsRes.data?.data?.map((m: any) => m.name) || []);
       } catch (err) {
         console.error("Lookup fetch error:", err);
       }

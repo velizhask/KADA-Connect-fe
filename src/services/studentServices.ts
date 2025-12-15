@@ -1,4 +1,3 @@
-// src/services/studentServices.ts
 import axiosInstance from "@/services/axiosInstance";
 import { API_PATHS } from "@/services/apiPath";
 
@@ -17,35 +16,49 @@ export interface StudentFilters {
 }
 
 export interface StudentPayload {
-  fullName: string;
-  status: string;
-  employmentStatus: string;
-  university: string;
-  major: string;
-  preferredIndustry: string;
-  techStack: string;
+  fullName?: string;
+  status?: string;
+  employmentStatus?: string;
+  university?: string;
+  major?: string;
+  preferredIndustry?: string;
+  techStack?: string;
   selfIntroduction?: string;
+  phone?: string;
+  batch?: string;
+  isVisible?: boolean;
   [key: string]: any;
 }
 
+// ==============================
+// HELPER
+// ==============================
 function transformToBackend(data: StudentPayload) {
-  return {
-    fullName: data.fullName,
-    status: data.status,
-    employmentStatus: data.employmentStatus,
-    university: data.university,
-    major: data.major,
-    preferredIndustry: data.preferredIndustry,
-    techStack: data.techStack,
-    selfIntroduction: data.selfIntroduction,
-  };
+  const payload: Record<string, any> = {};
+
+  if (data.fullName !== undefined) payload.fullName = data.fullName;
+  if (data.status !== undefined) payload.status = data.status;
+  if (data.employmentStatus !== undefined)
+    payload.employmentStatus = data.employmentStatus;
+  if (data.university !== undefined) payload.university = data.university;
+  if (data.major !== undefined) payload.major = data.major;
+  if (data.preferredIndustry !== undefined)
+    payload.preferredIndustry = data.preferredIndustry;
+  if (data.techStack !== undefined) payload.techStack = data.techStack;
+  if (data.selfIntroduction !== undefined)
+    payload.selfIntroduction = data.selfIntroduction;
+  if (data.phone !== undefined) payload.phone = data.phone;
+  if (data.batch !== undefined) payload.batch = data.batch;
+  if (data.isVisible !== undefined) payload.isVisible = data.isVisible;
+
+  return payload;
 }
 
 // ==============================
 // STUDENT SERVICES
 // ==============================
 export const studentServices = {
-  // LIST + FILTER + PAGINATION
+  // LIST
   getStudents: (filters?: StudentFilters) =>
     axiosInstance.get(API_PATHS.STUDENTS.LIST, {
       params: {
@@ -55,7 +68,9 @@ export const studentServices = {
         ...(filters?.university && { university: filters.university }),
         ...(filters?.major && { major: filters.major }),
         ...(filters?.industry && { industry: filters.industry }),
-        ...(filters?.skills && { skills: filters.skills }),
+        ...(filters?.skills && {
+          skills: filters.skills.join(","),
+        }),
       },
     }),
 
@@ -63,35 +78,39 @@ export const studentServices = {
   searchStudents: (query: string, filters?: StudentFilters) =>
     axiosInstance.get(API_PATHS.STUDENTS.SEARCH, {
       params: {
-        q: query?.trim(),
+        q: query.trim(),
         page: filters?.page ?? 1,
         limit: filters?.limit ?? 20,
         ...(filters?.status && { status: filters.status }),
         ...(filters?.university && { university: filters.university }),
         ...(filters?.major && { major: filters.major }),
         ...(filters?.industry && { industry: filters.industry }),
-        ...(filters?.skills && { skills: filters.skills }),
+        ...(filters?.skills && {
+          skills: filters.skills.join(","),
+        }),
       },
     }),
 
-  // DETAIL
-  getStudentById: (id: string | number) =>
+  // DETAIL (UUID STRING ONLY)
+  getStudentById: (id: string) =>
     axiosInstance.get(API_PATHS.STUDENTS.DETAIL(id)),
 
   // CREATE
-  createStudent: (data: StudentPayload) => {
-    const payload = transformToBackend(data);
-    return axiosInstance.post(API_PATHS.STUDENTS.CREATE, payload);
-  },
+  createStudent: (data: StudentPayload) =>
+    axiosInstance.post(
+      API_PATHS.STUDENTS.CREATE,
+      transformToBackend(data)
+    ),
 
-  // UPDATE
-  updateStudent: (id: string | number, data: StudentPayload) => {
-    const payload = transformToBackend(data);
-    return axiosInstance.patch(API_PATHS.STUDENTS.UPDATE(id), payload);
-  },
+  // UPDATE (PATCH)
+  updateStudent: (id: string, data: StudentPayload) =>
+    axiosInstance.patch(
+      API_PATHS.STUDENTS.UPDATE(id),
+      transformToBackend(data)
+    ),
 
   // DELETE
-  deleteStudent: (id: string | number) =>
+  deleteStudent: (id: string) =>
     axiosInstance.delete(API_PATHS.STUDENTS.DELETE(id)),
 
   // STATS
@@ -105,27 +124,37 @@ export const studentServices = {
   getSkills: () => axiosInstance.get(API_PATHS.STUDENTS.SKILLS),
 
   // FILE UPLOAD
-  uploadCV: (id: string | number, data: FormData) =>
-    axiosInstance.post(API_PATHS.STUDENTS.UPLOAD_CV(id), data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
+  uploadCV: (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("cv", file);
 
-  uploadPhoto: (id: string | number, data: FormData) =>
-    axiosInstance.post(API_PATHS.STUDENTS.UPLOAD_PHOTO(id), data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
+    return axiosInstance.post(
+      API_PATHS.STUDENTS.UPLOAD_CV(id),
+      formData
+    );
+  },
+
+  uploadPhoto: (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    return axiosInstance.post(
+      API_PATHS.STUDENTS.UPLOAD_PHOTO(id),
+      formData
+    );
+  },
 
   // FILE DELETE
-  deleteCV: (id: string | number) =>
+  deleteCV: (id: string) =>
     axiosInstance.delete(API_PATHS.STUDENTS.DELETE_CV(id)),
 
-  deletePhoto: (id: string | number) =>
+  deletePhoto: (id: string) =>
     axiosInstance.delete(API_PATHS.STUDENTS.DELETE_PHOTO(id)),
 
   // FILE GET
-  getCV: (id: string | number) =>
+  getCV: (id: string) =>
     axiosInstance.get(API_PATHS.STUDENTS.GET_CV(id)),
 
-  getPhoto: (id: string | number) =>
+  getPhoto: (id: string) =>
     axiosInstance.get(API_PATHS.STUDENTS.GET_PHOTO(id)),
 };

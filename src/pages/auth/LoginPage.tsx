@@ -129,7 +129,7 @@ const LoginPage = () => {
             {isEmailTouched &&
               email.length > 0 &&
               (emailIsValid ? (
-                <CheckCircle2Icon className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 w-5 h-5" />
+                <CheckCircle2Icon className="absolute right-3 top-1/2 -translate-y-1/2 text-primary w-5 h-5" />
               ) : (
                 <XCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 w-5 h-5" />
               ))}

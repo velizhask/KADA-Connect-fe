@@ -1,18 +1,7 @@
 import { useEffect, useState } from "react";
 import MainLayout from "@/layouts/MainLayout";
-
-import {
-  Phone,
-  Mail,
-  Linkedin,
-  Globe,
-  Star,
-  Pencil,
-} from "lucide-react";
-
+import { Phone, Mail, Linkedin, Globe, Star, Pencil } from "lucide-react";
 import { useAuthMeStore } from "@/store/authMeStore";
-
-// Shadcn UI
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -20,10 +9,6 @@ import { Badge } from "@/components/ui/badge";
 
 import InlineEdit from "@/components/common/edit/InlineEdit";
 import InlineSelect from "@/components/common/edit/InlineSelect";
-
-// ============================================================
-// MAIN PAGE
-// ============================================================
 
 export default function TraineeProfile() {
   const {
@@ -46,7 +31,7 @@ export default function TraineeProfile() {
       <MainLayout>
         <div className="h-screen flex items-center justify-center">
           <div className="text-center space-y-3">
-            <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
             <p className="text-gray-600">Loading profile...</p>
           </div>
         </div>
@@ -73,10 +58,7 @@ export default function TraineeProfile() {
   );
 }
 
-// ============================================================
 // EDIT MODE
-// ============================================================
-
 const ProfileEdit = ({
   profile,
   updateProfile,
@@ -174,7 +156,7 @@ const ProfileEdit = ({
             {/* VIEW MODE TOGGLE */}
             <Button
               variant="outline"
-              className="border-purple-600 text-purple-600"
+              className="border-primary text-primary"
               onClick={() => setViewMode("public")}
             >
               See Public View
@@ -291,7 +273,7 @@ const ProfileEdit = ({
                       href={profile.cvUpload}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-purple-600 underline"
+                      className="text-sm text-primary underline"
                     >
                       View
                     </a>
@@ -344,14 +326,14 @@ const ProfileEdit = ({
               <EditBox>
                 <div className="space-y-4">
                   <InlineEdit
-                    value={profile.major}
-                    placeholder="Major"
-                    onSave={(v) => updateProfile({ major: v })}
-                  />
-                  <InlineEdit
                     value={profile.university}
                     placeholder="University"
                     onSave={(v) => updateProfile({ university: v })}
+                  />
+                  <InlineEdit
+                    value={profile.major}
+                    placeholder="Major"
+                    onSave={(v) => updateProfile({ major: v })}
                   />
                 </div>
               </EditBox>
@@ -376,7 +358,7 @@ const ProfileEdit = ({
               </EditBox>
 
               {industries.length > 0 && (
-                <TagList className="mt-4" tags={industries} color="purple" />
+                <TagList className="mt-4" tags={industries} color="primary" />
               )}
             </CardContent>
           </Card>
@@ -416,7 +398,7 @@ const ProfileEdit = ({
             <CardContent>
               <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mb-2">
                 <div
-                  className="bg-purple-600 h-2 rounded-full"
+                  className="bg-primary h-2 rounded-full"
                   style={{ width: `${profile.completionRate}%` }}
                 />
               </div>
@@ -462,123 +444,204 @@ const ProfileEdit = ({
   );
 };
 
-// ============================================================
 // PUBLIC VIEW
-// ============================================================
-
 const ProfilePublic = ({ profile, setViewMode }: any) => {
   const industries = (profile.preferredIndustry || "")
     .split(",")
     .map((s: string) => s.trim())
     .filter(Boolean);
+
   const techStack = (profile.techStack || "")
     .split(",")
     .map((s: string) => s.trim())
     .filter(Boolean);
 
   return (
-    <div className="space-y-8">
-      {/* HEADER */}
-      <Card className="rounded-none border-0 border-b shadow-none">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-6 items-start justify-between">
-            {/* LEFT */}
-            <div className="flex gap-6 items-start flex-1">
-              <Avatar className="w-32 h-32 border shadow-sm">
-                <AvatarImage src={profile.profilePhoto || undefined} />
-                <AvatarFallback>
-                  {profile.fullName
-                    ?.split(" ")
-                    .map((w: string) => w[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
+    <div className="space-y-6">
+      <Card className="rounded-3xl border border-gray-200 shadow-none">
+        <CardContent className="p-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+            {/* ================= AVATAR ================= */}
+            <Avatar className="w-40 h-40 md:w-48 md:h-48 border shadow-sm">
+              <AvatarImage src={profile.profilePhoto || undefined} />
+              <AvatarFallback className="text-3xl">
+                {profile.fullName
+                  ?.split(" ")
+                  .map((w: string) => w[0])
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
 
-              <div className="flex-1 space-y-4">
-                <h1 className="text-2xl font-semibold text-gray-900">
-                  {profile.fullName}
-                </h1>
+            {/* ================= INFO ================= */}
+            <div className="flex-1 space-y-4 text-center md:text-left">
+              {/* NAME */}
+              <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">
+                {profile.fullName}
+              </h1>
 
-                <div className="space-y-2 text-sm">
-                  {profile.phone && (
-                    <InfoLine icon={<Phone />} text={profile.phone} />
-                  )}
-                  {profile.linkedin && (
-                    <InfoLine icon={<Linkedin />} text={profile.linkedin} />
-                  )}
-                  {profile.email && (
-                    <InfoLine icon={<Mail />} text={profile.email} />
-                  )}
-                  {profile.portfolioLink && (
-                    <InfoLine icon={<Globe />} text={profile.portfolioLink} />
-                  )}
-                </div>
+              {/* BADGES */}
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                {profile.batch && (
+                  <Badge className="bg-primary text-white">
+                    {profile.batch}
+                  </Badge>
+                )}
+                {profile.employmentStatus && (
+                  <Badge variant="secondary" className="text-primary">
+                    {profile.employmentStatus}
+                  </Badge>
+                )}
+              </div>
+
+              {/* CONTACT */}
+              <div className="flex flex-wrap items-center gap-4 justify-center md:justify-start text-sm text-gray-700">
+                {profile.phone && <span>{profile.phone}</span>}
+
+                {profile.linkedin && (
+                  <a
+                    href={profile.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary"
+                  >
+                    <Linkedin className="w-4 h-4" />
+                  </a>
+                )}
+
+                {profile.email && (
+                  <a
+                    href={`mailto:${profile.email}`}
+                    className="flex items-center gap-1 hover:text-primary transition"
+                  >
+                    <Mail className="w-4 h-4" />
+                    <span className="sr-only">Email</span>
+                  </a>
+                )}
+              </div>
+
+              {/* ACTIONS */}
+              <div className="flex flex-wrap gap-4 justify-center md:justify-start pt-2">
+                {profile.cvUpload && (
+                  <Button className="bg-primary hover:bg-primary/90" asChild>
+                    <a href={profile.cvUpload} target="_blank">
+                      Download CV
+                    </a>
+                  </Button>
+                )}
+
+                {profile.portfolioLink && (
+                  <Button
+                    variant="outline"
+                    className="border-primary text-primary"
+                    asChild
+                  >
+                    <a
+                      href={profile.portfolioLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2"
+                    >
+                      View Portfolio
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        className="stroke-current"
+                      >
+                        <path d="M14 3h7v7" strokeWidth="2" />
+                        <path d="M10 14L21 3" strokeWidth="2" />
+                        <path d="M21 14v7h-7" strokeWidth="2" />
+                        <path d="M3 10V3h7" strokeWidth="2" />
+                      </svg>
+                    </a>
+                  </Button>
+                )}
               </div>
             </div>
-
-            <Button variant="outline" onClick={() => setViewMode("edit")}>
+            <Button
+              variant="outline"
+              className="border-primary text-primary"
+              onClick={() => setViewMode("edit")}
+            >
               Back to Edit
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* PUBLIC SECTIONS */}
-      <div className="p-6 space-y-6">
-        {profile.selfIntroduction && (
-          <PublicSection title="Introduction">
-            <p className="text-gray-700 leading-relaxed">
-              {profile.selfIntroduction}
-            </p>
-          </PublicSection>
-        )}
+      <div className="space-y-6">
+        {/* LEFT */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* CAPSTONE */}
+          <Card className="border-0 shadow-none">
+            <CardHeader className="px-0">
+              <CardTitle className="text-xl font-medium">Capstone</CardTitle>
+            </CardHeader>
+            <CardContent className="border rounded-lg p-4">
+              {profile.capstoneProject || "—"}
+            </CardContent>
+          </Card>
 
-        {(profile.major || profile.university) && (
-          <PublicSection title="Education">
-            <p className="font-semibold">{profile.major}</p>
-            <p className="text-gray-600">{profile.university}</p>
-          </PublicSection>
-        )}
+          {/* INTRODUCTION */}
+          {profile.selfIntroduction && (
+            <Card className="border-0 shadow-none">
+              <CardHeader className="px-0">
+                <CardTitle className="text-xl font-medium">
+                  Introduction
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="border rounded-lg p-4">
+                {profile.selfIntroduction}
+              </CardContent>
+            </Card>
+          )}
 
-        {profile.techStack && (
-          <PublicSection title="Tech Stack">
-            <TagList tags={techStack} color="cyan" />
-          </PublicSection>
-        )}
+          {/* EDUCATION */}
+          {(profile.university || profile.major) && (
+            <Card className="border-0 shadow-none">
+              <CardHeader className="px-0">
+                <CardTitle className="text-xl font-medium">Education</CardTitle>
+              </CardHeader>
+              <CardContent className="border rounded-lg p-4 space-y-1">
+                <p className="font-medium">{profile.university}</p>
+                <p className="text-sm text-gray-600">{profile.major}</p>
+              </CardContent>
+            </Card>
+          )}
 
-        {profile.preferredIndustry && (
-          <PublicSection title="Preferred Industry">
-            <TagList tags={industries} color="purple" />
-          </PublicSection>
-        )}
+          {/* INDUSTRY */}
+          {industries.length > 0 && (
+            <Card className="border-0 shadow-none">
+              <CardHeader className="px-0">
+                <CardTitle className="text-xl font-medium">
+                  Preferred Industry
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-0">
+                <TagList tags={industries} color="primary" />
+              </CardContent>
+            </Card>
+          )}
 
-        {profile.testimony && (
-          <PublicSection title="Testimony">
-            <div className="flex gap-1 mb-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star
-                  key={i}
-                  className="h-5 w-5 fill-yellow-400 text-yellow-400"
-                />
-              ))}
-            </div>
-            <p className="italic">{profile.testimony}</p>
-          </PublicSection>
-        )}
+          {/* TECH STACK */}
+          {techStack.length > 0 && (
+            <Card className="border-0 shadow-none">
+              <CardHeader className="px-0">
+                <CardTitle className="text-xl font-medium">
+                  Tech Stack
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-0">
+                <TagList tags={techStack} color="cyan" />
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
 };
-
-
-const PublicSection = ({ title, children }: any) => (
-  <Card className="rounded-lg border shadow-sm">
-    <CardContent className="p-4">
-      <h2 className="font-semibold mb-2">{title}</h2>
-      {children}
-    </CardContent>
-  </Card>
-);
 
 const FieldRow = ({ icon, children }: any) => (
   <div className="flex items-center gap-2 text-sm text-gray-700">
@@ -597,20 +660,13 @@ const TagList = ({ tags, color }: any) => (
       <Badge
         key={i}
         className={`px-2 py-1 rounded-md ${
-          color === "purple"
-            ? " bg-purple-50 text-purple-700"
+          color === "primary"
+            ? " bg-primary/5 text-primary"
             : " bg-cyan-50 text-cyan-700"
         }`}
       >
         {t}
       </Badge>
     ))}
-  </div>
-);
-
-const InfoLine = ({ icon, text }: any) => (
-  <div className="flex items-center gap-2 text-gray-700">
-    <span className="text-gray-500">{icon}</span>
-    <span>{text}</span>
   </div>
 );

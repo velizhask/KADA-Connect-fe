@@ -9,17 +9,23 @@ export const API_PATHS = {
     REGISTER: `${API_BASE_URL}/auth/register`,
     LOGIN: `${API_BASE_URL}/auth/login`,
     LOGOUT: `${API_BASE_URL}/auth/logout`,
-    ME: `${API_BASE_URL}/auth/me`,
+    FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password`,
+    RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password`,
+    ME_LEGACY: `${API_BASE_URL}/auth/me`, // legacy
   },
 
   // ================================
-  // AUTH / ME ROUTES
+  // AUTH / ME ROUTES (CURRENT USER)
   // ================================
   AUTH_ME: {
     PROFILE: `${API_BASE_URL}/auth/me/profile`,
-    UPDATE_PROFILE: `${API_BASE_URL}/auth/me/profile`, 
+    UPDATE_PROFILE: `${API_BASE_URL}/auth/me/profile`,
+
+    // STUDENT ONLY
     UPLOAD_CV: `${API_BASE_URL}/auth/me/cv`,
     UPLOAD_PHOTO: `${API_BASE_URL}/auth/me/photo`,
+
+    // COMPANY ONLY
     UPLOAD_LOGO: `${API_BASE_URL}/auth/me/logo`,
   },
 
@@ -28,86 +34,72 @@ export const API_PATHS = {
   // ================================
   ADMIN: {
     LOGS: `${API_BASE_URL}/admin/logs`,
-    LOGS_BY_REQUEST: (requestId: string | number) =>
+    LOGS_BY_REQUEST: (requestId: string) =>
       `${API_BASE_URL}/admin/logs/request/${requestId}`,
     LOG_STATS: `${API_BASE_URL}/admin/logs/stats`,
   },
 
   // ================================
-  // COMPANY ROUTES
+  // COMPANIES ROUTES
   // ================================
-COMPANIES: {
-    LIST: "/companies",
-    SEARCH: "/companies/search",
-    INDUSTRIES: "/companies/industries",
-    TECH_ROLES: "/companies/tech-roles",
-    STATS: "/companies/stats",
-    DETAIL: (id: string | number) => `/companies/${id}`,
-    CREATE: "/companies",
-    UPDATE: (id: string | number) => `/companies/${id}`,
-    DELETE: (id: string | number) => `/companies/${id}`,
-    VALIDATE_LOGO: "/companies/validate-logo",
-    UPLOAD_LOGO: (id: string | number) => `/companies/${id}/logo`,
-    DELETE_LOGO: (id: string | number) => `/companies/${id}/logo`,
-    GET_LOGO: (id: string | number) => `/companies/${id}/logo`,
+  COMPANIES: {
+    LIST: `${API_BASE_URL}/companies`,
+    SEARCH: `${API_BASE_URL}/companies/search`,
+    INDUSTRIES: `${API_BASE_URL}/companies/industries`,
+    TECH_ROLES: `${API_BASE_URL}/companies/tech-roles`,
+    STATS: `${API_BASE_URL}/companies/stats`,
+
+    DETAIL: (id: string) => `${API_BASE_URL}/companies/${id}`,
+    CREATE: `${API_BASE_URL}/companies`,
+    UPDATE: (id: string) => `${API_BASE_URL}/companies/${id}`,
+    DELETE: (id: string) => `${API_BASE_URL}/companies/${id}`,
+
+    // FILES
+    UPLOAD_LOGO: (id: string) => `${API_BASE_URL}/companies/${id}/logo`,
+    DELETE_LOGO: (id: string) => `${API_BASE_URL}/companies/${id}/logo`,
+    GET_LOGO: (id: string) => `${API_BASE_URL}/companies/${id}/logo`,
+
+    // ADMIN ONLY
+    BULK_APPROVE: `${API_BASE_URL}/companies/bulk-approve`,
   },
 
   // ================================
-  // STUDENT ROUTES
+  // STUDENTS ROUTES
   // ================================
   STUDENTS: {
-    BASE: `${API_BASE_URL}/students`,
     LIST: `${API_BASE_URL}/students`,
     SEARCH: `${API_BASE_URL}/students/search`,
-    STATUS: (status: string) => `${API_BASE_URL}/students/status/${status}`,
+    STATUS: (status: string) =>
+      `${API_BASE_URL}/students/status/${encodeURIComponent(status)}`,
     UNIVERSITIES: `${API_BASE_URL}/students/universities`,
     MAJORS: `${API_BASE_URL}/students/majors`,
     INDUSTRIES: `${API_BASE_URL}/students/industries`,
     SKILLS: `${API_BASE_URL}/students/skills`,
     STATS: `${API_BASE_URL}/students/stats`,
 
-    DETAIL: (id: string | number) => `${API_BASE_URL}/students/${id}`,
+    DETAIL: (id: string) => `${API_BASE_URL}/students/${id}`,
     CREATE: `${API_BASE_URL}/students`,
-    UPDATE: (id: string | number) => `${API_BASE_URL}/students/${id}`,
-    DELETE: (id: string | number) => `${API_BASE_URL}/students/${id}`,
+    UPDATE: (id: string) => `${API_BASE_URL}/students/${id}`,
+    DELETE: (id: string) => `${API_BASE_URL}/students/${id}`,
 
-    // FILE ROUTES
-    UPLOAD_CV: (id: string | number) => `${API_BASE_URL}/students/${id}/cv`,
-    UPLOAD_PHOTO: (id: string | number) =>
-      `${API_BASE_URL}/students/${id}/photo`,
+    // FILES
+    UPLOAD_CV: (id: string) => `${API_BASE_URL}/students/${id}/cv`,
+    DELETE_CV: (id: string) => `${API_BASE_URL}/students/${id}/cv`,
+    GET_CV: (id: string) => `${API_BASE_URL}/students/${id}/cv`,
 
-    DELETE_CV: (id: string | number) => `${API_BASE_URL}/students/${id}/cv`,
-    DELETE_PHOTO: (id: string | number) =>
-      `${API_BASE_URL}/students/${id}/photo`,
+    UPLOAD_PHOTO: (id: string) => `${API_BASE_URL}/students/${id}/photo`,
+    DELETE_PHOTO: (id: string) => `${API_BASE_URL}/students/${id}/photo`,
+    GET_PHOTO: (id: string) => `${API_BASE_URL}/students/${id}/photo`,
 
-    GET_CV: (id: string | number) => `${API_BASE_URL}/students/${id}/cv`,
-    GET_PHOTO: (id: string | number) => `${API_BASE_URL}/students/${id}/photo`,
+    // ADMIN ONLY
+    BULK_APPROVE: `${API_BASE_URL}/students/bulk-approve`,
   },
 
   // ================================
-  // LOOKUP ROUTES
+  // LOOKUP / SUGGESTIONS (SESUI DOCS)
   // ================================
   LOOKUP: {
-    INDUSTRIES: `${API_BASE_URL}/industries`,
-    TECH_ROLES: `${API_BASE_URL}/tech-roles`,
-    TECH_ROLE_CATEGORIES: `${API_BASE_URL}/tech-role-categories`,
-    UNIVERSITIES: `${API_BASE_URL}/universities`,
-    MAJORS: `${API_BASE_URL}/majors`,
-    PREFERRED_INDUSTRIES: `${API_BASE_URL}/preferred-industries`,
-
-    TECH_ROLES_BY_CATEGORY: (category: string) =>
-      `${API_BASE_URL}/tech-roles/category/${category}`,
-
-    SEARCH_INDUSTRIES: `${API_BASE_URL}/search/industries`,
-    SEARCH_TECH_ROLES: `${API_BASE_URL}/search/tech-roles`,
-    SEARCH_UNIVERSITIES: `${API_BASE_URL}/search/universities`,
-    SEARCH_MAJORS: `${API_BASE_URL}/search/majors`,
-    SEARCH_PREFERRED_INDUSTRIES: `${API_BASE_URL}/search/preferred-industries`,
-
     TECH_SKILL_SUGGESTIONS: `${API_BASE_URL}/suggestions/tech-skills`,
-    VALIDATE_TECH_SKILLS: `${API_BASE_URL}/validate/tech-skills`,
-
-    ALL_LOOKUP: `${API_BASE_URL}/lookup/all`,
 
     POPULAR_INDUSTRIES: `${API_BASE_URL}/popular/industries`,
     POPULAR_TECH_ROLES: `${API_BASE_URL}/popular/tech-roles`,
@@ -116,9 +108,8 @@ COMPANIES: {
     POPULAR_MAJORS: `${API_BASE_URL}/popular/majors`,
     POPULAR_PREFERRED_INDUSTRIES: `${API_BASE_URL}/popular/preferred-industries`,
 
+    // ADMIN
     CACHE_CLEAR: `${API_BASE_URL}/cache/clear`,
     CACHE_STATUS: `${API_BASE_URL}/cache/status`,
   },
-
-  
 };

@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal } from "lucide-react";
 
 export default function UserManagement() {

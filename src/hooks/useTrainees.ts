@@ -82,7 +82,12 @@ export const useTrainees = (initialLimit = 9) => {
           }),
           ...(filters.major !== "all" && { major: filters.major }),
           ...(filters.industry !== "all" && { industry: filters.industry }),
-          ...(filters.skill !== "all" && { skills: filters.skill }),
+          ...(filters.skill !== "all" && {
+  skills: filters.skill
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean),
+}),
         };
 
         const res =

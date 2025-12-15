@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
 
 interface InlineEditProps {
   value: string | number | null;
@@ -35,7 +36,6 @@ export default function InlineEdit({
     setEditing(false);
   };
 
-  // 🔥 Auto-save with ENTER, cancel with ESC (only for single line input)
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!multiline) {
       if (e.key === "Enter") {
@@ -49,21 +49,29 @@ export default function InlineEdit({
     }
   };
 
+  /* ================= VIEW MODE ================= */
   if (!editing) {
     return (
       <div
-        className="cursor-pointer hover:bg-gray-100 p-1 rounded transition"
         onClick={startEdit}
+        className="
+          flex items-center justify-between
+          cursor-pointer rounded-md p-1
+          hover:bg-gray-100 transition
+        "
       >
-        {value ? (
-          <span className="text-gray-900">{value}</span>
-        ) : (
-          <span className="text-gray-400">{placeholder}</span>
-        )}
+        {/* VALUE */}
+        <span className={value ? "text-gray-900" : "text-gray-400"}>
+          {value || placeholder}
+        </span>
+
+        {/* PENCIL ICON (ALWAYS VISIBLE) */}
+        <Pencil className="w-4 h-4 text-gray-400 ml-2 shrink-0" />
       </div>
     );
   }
 
+  /* ================= EDIT MODE ================= */
   return (
     <div className="space-y-2">
       {multiline ? (

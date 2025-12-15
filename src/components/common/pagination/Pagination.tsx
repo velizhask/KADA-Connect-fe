@@ -1,7 +1,13 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { usePagination } from "@/hooks/usePagination";
+import * as React from "react";
+import {
+  Pagination as ShadcnPagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
 interface PaginationProps {
   page: number;
@@ -14,56 +20,87 @@ export const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
-  const { pages, goToPrev, goToNext, canPrev, canNext } = usePagination(
-    page,
-    totalPages,
-    onPageChange
-  );
+  if (!totalPages || totalPages < 2) return null;
+
+  const getPages = () => {
+    const pages: (number | "...")[] = [];
+
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
+    }
+
+    pages.push(1);
+
+    if (page > 4) pages.push("...");
+
+    const start = Math.max(2, page - 1);
+    const end = Math.min(totalPages - 1, page + 1);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    if (page < totalPages - 3) pages.push("...");
+
+    pages.push(totalPages);
+
+    return pages;
+  };
 
   return (
-    <div className="flex items-center justify-center gap-2 sm:gap-3 w-full">
-      <Button
-        variant="outline"
-        disabled={!canPrev}
-        onClick={goToPrev}
-        className="flex items-center justify-center gap-1 sm:gap-2 h-9 sm:h-10 px-2 sm:px-4 text-xs sm:text-sm cursor-pointer"
-      >
-        <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Prev
-      </Button>
+    <ShadcnPagination>
+      <PaginationContent>
+        {/* PREVIOUS */}
+        <PaginationItem>
+          <PaginationPrevious
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (page > 1) onPageChange(page - 1);
+            }}
+            className={page === 1 ? "pointer-events-none opacity-50" : ""}
+          />
+        </PaginationItem>
 
-      <div className="flex items-center justify-center gap-1 sm:gap-2">
-        {pages.map((p, index) =>
+        {/* PAGE NUMBERS */}
+        {getPages().map((p, index) =>
           p === "..." ? (
-            <span
-              key={`ellipsis-${index}`}
-              className="text-gray-400 px-2 text-sm select-none"
-            >
-              ...
-            </span>
+            <PaginationItem key={`ellipsis-${index}`}>
+              <PaginationEllipsis />
+            </PaginationItem>
           ) : (
-            <button
-              key={`page-${p}`}
-              onClick={() => onPageChange(Number(p))}
-              className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg text-xs sm:text-sm font-medium transition cursor-pointer ${
-                page === p
-                  ? "bg-primary text-white shadow-sm"
-                  : "bg-white border border-gray-200 text-gray-700 hover:border-primary-300 hover:bg-primary-50"
-              }`}
-            >
-              {p}
-            </button>
+            <PaginationItem key={`page-${p}`}>
+              <PaginationLink
+                href="#"
+                isActive={page === p}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onPageChange(p);
+                }}
+              >
+                {p}
+              </PaginationLink>
+            </PaginationItem>
           )
         )}
-      </div>
 
-      <Button
-        variant="outline"
-        disabled={!canNext}
-        onClick={goToNext}
-        className="flex items-center justify-center gap-1 sm:gap-2 h-9 sm:h-10 px-2 sm:px-4 text-xs sm:text-sm cursor-pointer"
-      >
-        Next <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-      </Button>
-    </div>
+        {/* NEXT */}
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (page < totalPages) onPageChange(page + 1);
+            }}
+            className={
+              page >= totalPages ? "pointer-events-none opacity-50" : ""
+            }
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </ShadcnPagination>
   );
 };
+
+export default Pagination;

@@ -59,12 +59,6 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Public trainee profile */}
-        <Route path="/trainees/:id" element={<TraineePublicProfile />} />
-
-        {/* Public company profile */}
-        <Route path="/companies/:id" element={<CompanyPublicProfile />} />
-
         {/* Registration */}
         <Route path="/register" element={<ChooseAccountPage />} />
 
@@ -86,7 +80,6 @@ function App() {
           />
         </Route>
 
-
         {/* Public information */}
         <Route path="/terms-of-service" element={<KadaTermsOfService />} />
         <Route path="/about/project" element={<ProjectShowcase />} />
@@ -106,10 +99,21 @@ function App() {
 
           <Route path="/companies" element={<CompanyPage />} />
           <Route path="/companies/me" element={<CompanyProfilePage />} />
+          {/* Public trainee profile */}
+
+          {/* Public company profile */}
+          <Route path="/companies/:id" element={<CompanyPublicProfile />} />
         </Route>
 
         {/* 404 PAGE                                              */}
         <Route path="*" element={<NotFoundPage />} />
+        <Route
+          element={
+            <ProtectedRoute requireAuth allowedRoles={["company", "admin"]} />
+          }
+        >
+          <Route path="/trainees/:id" element={<TraineePublicProfile />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

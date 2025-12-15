@@ -1,176 +1,240 @@
-import React, { useEffect, useState } from "react";
 import MainLayout from "@/layouts/MainLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
 import { useTrainees } from "@/hooks/useTrainees";
 import { useLookupFilters } from "@/hooks/useLookupFilters";
+
+import { FilterCheckboxGroup } from "@/components/common/filters/FilterCheckboxGroup";
+import { ActiveFilters } from "@/components/common/filters/ActiveFilter";
 import { TraineeCard } from "@/components/trainees/TraineeCard";
 import { TraineeDetailsDialog } from "@/components/trainees/TraineeDetailsDialog";
-import { FilterInput } from "@/components/common/filters/FilterInput";
-import { FilterSelect } from "@/components/common/filters/FilterSelect";
 import { Pagination } from "@/components/common/pagination/Pagination";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 
-const TraineePage: React.FC = () => {
+import { Filter } from "lucide-react";
+import { useState } from "react";
+
+function FilterContent({
+  filters,
+  updateArrayFilter,
+  skills,
+  preferredIndustries,
+  universities,
+  majors,
+}: any) {
+  return (
+    <div className="space-y-6">
+      <FilterCheckboxGroup
+        title="Status"
+        items={["Current Trainee", "Alumni"]}
+        values={filters.status}
+        onChange={(v) => updateArrayFilter("status", v)}
+      />
+
+      <FilterCheckboxGroup
+        title="University"
+        items={universities}
+        values={filters.universities}
+        onChange={(v) => updateArrayFilter("universities", v)}
+        initialVisibleCount={5}
+      />
+
+      <FilterCheckboxGroup
+        title="Major"
+        items={majors}
+        values={filters.majors}
+        onChange={(v) => updateArrayFilter("majors", v)}
+        initialVisibleCount={5}
+      />
+
+      <FilterCheckboxGroup
+        title="Tech Stack"
+        items={skills}
+        values={filters.skills}
+        onChange={(v) => updateArrayFilter("skills", v)}
+        initialVisibleCount={6}
+      />
+
+      <FilterCheckboxGroup
+        title="Preferred Industry"
+        items={preferredIndustries}
+        values={filters.industries}
+        onChange={(v) => updateArrayFilter("industries", v)}
+        initialVisibleCount={4}
+      />
+    </div>
+  );
+}
+
+export default function TraineePage() {
   const {
     trainees,
-    pagination,
     filters,
     loading,
     error,
-    updateFilter,
+    pagination,
+    updateArrayFilter,
     resetFilters,
-    handlePageChange,
-  } = useTrainees(9);
+    setPage,
+    search,
+    setSearch,
+  } = useTrainees(10);
 
-  // FIX: gunakan preferredIndustries (dari branch issue41)
-  const { preferredIndustries, skills, universities, majors } = useLookupFilters();
+  const { skills, preferredIndustries, universities, majors } =
+    useLookupFilters();
 
-  const [selectedTrainee, setSelectedTrainee] = useState<any | null>(null);
-
-  useEffect(() => {
-    document.title = "KADA Connect | Meet the Trainees";
-  }, []);
+  const [selected, setSelected] = useState<any>(null);
+  const [showDesktopFilter, setShowDesktopFilter] = useState(true);
 
   return (
     <MainLayout>
-      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8">
-        <div className="mb-6 sm:mb-8">
-          <h1 className="mb-2 sm:mb-3 text-2xl sm:text-3xl md:text-4xl font-medium">
-            KADA Trainees
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg text-muted-foreground">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* HEADER */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-semibold mb-1">KADA Trainees</h1>
+          <p className="text-muted-foreground">
             Discover talented professionals from the Korea-ASEAN Digital Academy
             program.
           </p>
         </div>
 
-        {/* Filter Section */}
-        <Card className="mb-6 sm:mb-8 p-4 sm:p-6 shadow-sm border border-gray-100">
-          <div className="mb-4 sm:mb-6 flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2 text-gray-700 font-medium text-sm sm:text-base">
-              <Filter className="h-4 w-4 text-primary-600" />
-              <span>Filter Trainees</span>
-            </div>
+        {/* MOBILE FILTER */}
+        <div className="flex justify-end mb-4 lg:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Filter className="h-4 w-4" />
+                Filters
+              </Button>
+            </SheetTrigger>
 
-            {/* FIX: tambah cursor-pointer */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs sm:text-sm h-8 sm:h-9 cursor-pointer"
-              onClick={resetFilters}
-            >
-              Clear Filters
-            </Button>
-          </div>
+            <SheetContent side="right" className="w-[320px] sm:w-[360px]">
+              <SheetHeader className="mb-4">
+                <SheetTitle className="flex items-center gap-2 text-sm">
+                  <Filter className="h-4 w-4" />
+                  Filters
+                </SheetTitle>
+              </SheetHeader>
 
-          {/* Filters */}
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <FilterInput
-              label="Search"
-              value={filters.searchTerm}
-              onChange={(val) => updateFilter("searchTerm", val)}
-              placeholder="Type name or keyword..."
-            />
-
-            <FilterSelect
-              label="Status"
-              value={filters.status}
-              onChange={(val) => updateFilter("status", val)}
-              items={["Current Trainee", "Alumni"]}
-            />
-
-            <FilterSelect
-              label="University"
-              value={filters.university}
-              onChange={(val) => updateFilter("university", val)}
-              items={universities}
-            />
-
-            <FilterSelect
-              label="Major"
-              value={filters.major}
-              onChange={(val) => updateFilter("major", val)}
-              items={majors}
-            />
-
-            {/* FIX: gunakan preferredIndustries (bukan industries) */}
-            <FilterSelect
-              label="Preferred Industry"
-              value={filters.industry}
-              onChange={(val) => updateFilter("industry", val)}
-              items={preferredIndustries}
-            />
-
-            <FilterSelect
-              label="Tech Skills"
-              value={filters.skill}
-              onChange={(val) => updateFilter("skill", val)}
-              items={skills}
-            />
-          </div>
-        </Card>
-
-        {/* Results Section */}
-        <div className="flex-1 transition-all duration-300">
-          {!loading && !error && trainees.length > 0 && (
-            <>
-              <div className="mb-4 text-xs sm:text-sm text-muted-foreground px-1">
-                <span className="hidden sm:inline">
-                  Showing {(pagination.page - 1) * pagination.limit + 1}–
-                  {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-                  of {pagination.total} trainees — Page {pagination.page} of{" "}
-                  {pagination.totalPages}
-                </span>
-              </div>
-
-              <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {trainees.map((t) => (
-                  <TraineeCard
-                    key={t.id}
-                    trainee={t}
-                    onClick={() => setSelectedTrainee(t)}
-                  />
-                ))}
-              </div>
-
-              {/* Pagination */}
-              <div className="w-full mt-6 sm:mt-8 px-2 sm:px-0">
-                <Pagination
-                  page={pagination.page}
-                  totalPages={pagination.totalPages}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            </>
-          )}
-
-          {!loading && !error && trainees.length === 0 && (
-            <div className="py-24 text-center text-muted-foreground">
-              No trainees match your filters.
-            </div>
-          )}
-
-          {loading && (
-            <div className="flex flex-col items-center gap-4 my-8">
-              <LoadingSpinner text="Loading trainee..." />
-            </div>
-          )}
-
-          {error && (
-            <div className="py-24 text-center text-red-500">{error}</div>
-          )}
+              <FilterContent
+                filters={filters}
+                updateArrayFilter={updateArrayFilter}
+                skills={skills}
+                preferredIndustries={preferredIndustries}
+                universities={universities}
+                majors={majors}
+              />
+            </SheetContent>
+          </Sheet>
         </div>
 
-        {/* Dialog */}
+        {/* GRID */}
+        <div
+          className={`grid gap-6 ${
+            showDesktopFilter
+              ? "grid-cols-1 lg:grid-cols-[260px_1fr]"
+              : "grid-cols-1"
+          }`}
+        >
+          {/* DESKTOP FILTER */}
+          {showDesktopFilter && (
+            <Card className="p-4 h-fit hidden lg:block">
+              <div className="flex items-center gap-2 text-sm font-medium mb-4">
+                <Filter className="h-4 w-4" />
+                Filters
+              </div>
+
+              <FilterContent
+                filters={filters}
+                updateArrayFilter={updateArrayFilter}
+                skills={skills}
+                preferredIndustries={preferredIndustries}
+                universities={universities}
+                majors={majors}
+              />
+            </Card>
+          )}
+
+          {/* CONTENT */}
+          <div>
+            {/* TOOLBAR */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-start gap-3 mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 hidden lg:flex p-4.5"
+                onClick={() => setShowDesktopFilter((v) => !v)}
+              >
+                <Filter className="h-4 w-4" />
+                Filters
+              </Button>
+              <input
+                type="text"
+                placeholder="Search trainees..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full sm:w-[280px] rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <ActiveFilters
+              filters={{
+                status: filters.status,
+                universities: filters.universities,
+                majors: filters.majors,
+                industries: filters.industries,
+                skills: filters.skills,
+              }}
+              onRemove={(key, value) =>
+                updateArrayFilter(
+                  key,
+                  filters[key].filter((v: string) => v !== value)
+                )
+              }
+              onReset={resetFilters}
+            />
+
+            {loading && (
+              <div className="flex justify-center my-16">
+                <LoadingSpinner text="Loading trainees..." />
+              </div>
+            )}
+
+            {!loading && !error && (
+              <div className="space-y-4">
+                {trainees.map((t) => (
+                  <TraineeCard key={t.id} trainee={t} />
+                ))}
+              </div>
+            )}
+
+            {error && (
+              <div className="text-center text-red-500 py-16">{error}</div>
+            )}
+
+            <div className="mt-8">
+              <Pagination
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+              />
+            </div>
+          </div>
+        </div>
+
         <TraineeDetailsDialog
-          trainee={selectedTrainee}
-          onClose={() => setSelectedTrainee(null)}
+          trainee={selected}
+          onClose={() => setSelected(null)}
         />
       </div>
     </MainLayout>
   );
-};
-
-export default TraineePage;
+}

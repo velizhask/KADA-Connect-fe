@@ -84,33 +84,32 @@ const ProfileEdit = ({
             <div className="flex items-center gap-6">
               {/* LOGO */}
               <div className="relative max-w-[260px]">
-  {profile.logo ? (
-    <img
-      src={profile.logo}
-      alt={profile.companyName || "Company logo"}
-      className="
+                {profile.logo ? (
+                  <img
+                    src={profile.logo}
+                    alt={profile.companyName || "Company logo"}
+                    className="
         max-h-60
         object-contain
       "
-    />
-  ) : (
-    <div className="h-32 w-48 flex items-center justify-center bg-gray-100 rounded-md">
-      <Building2 className="w-10 h-10 text-gray-400" />
-    </div>
-  )}
+                  />
+                ) : (
+                  <div className="h-32 w-48 flex items-center justify-center bg-gray-100 rounded-md">
+                    <Building2 className="w-10 h-10 text-gray-400" />
+                  </div>
+                )}
 
-  {/* UPLOAD BUTTON */}
-  <label className="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow border cursor-pointer hover:bg-gray-50">
-    <input
-      type="file"
-      className="hidden"
-      accept="image/*"
-      onChange={(e) => uploadLogo(e.target.files?.[0])}
-    />
-    <Pencil className="h-4 w-4 text-gray-700" />
-  </label>
-</div>
-
+                {/* UPLOAD BUTTON */}
+                <label className="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow border cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => uploadLogo(e.target.files?.[0])}
+                  />
+                  <Pencil className="h-4 w-4 text-gray-700" />
+                </label>
+              </div>
 
               {/* TEXT */}
               <div className="space-y-4 flex-1">

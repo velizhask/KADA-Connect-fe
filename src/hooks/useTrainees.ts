@@ -2,166 +2,125 @@ import { useCallback, useEffect, useState } from "react";
 import { studentServices } from "@/services/studentServices";
 import { useDebounce } from "./useDebounce";
 
-interface Trainee {
-  id: number;
-  fullName: string;
-  status: string;
-  university: string;
-  major: string;
-  preferredIndustry?: string;
-  techStack?: string;
-  selfIntroduction?: string;
-  cvUpload?: string;
-  portfolioLink?: string;
-  profilePhoto?: string;
-  linkedin?: string | null;
-}
-
-interface PaginationInfo {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
-interface Filters {
+export interface Filters {
   searchTerm: string;
-  status: string;
-  university: string;
-  major: string;
-  industry: string;
-  skill: string;
+  status: string[];
+  universities: string[];
+  majors: string[];
+  industries: string[];
+  skills: string[];
 }
 
-export const useTrainees = (initialLimit = 9) => {
-  const [trainees, setTrainees] = useState<Trainee[]>([]);
-  const [pagination, setPagination] = useState<PaginationInfo>({
+export const useTrainees = (limit = 10) => {
+  const [trainees, setTrainees] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // ⬅️ totalPages DIKONTROL FE
+  const [pagination, setPagination] = useState({
     page: 1,
-    limit: initialLimit,
-    total: 0,
+    limit,
     totalPages: 1,
   });
 
   const [filters, setFilters] = useState<Filters>({
     searchTerm: "",
-    status: "all",
-    university: "all",
-    major: "all",
-    industry: "all",
-    skill: "all",
+    status: [],
+    universities: [],
+    majors: [],
+    industries: [],
+    skills: [],
   });
-
-  const [cache, setCache] = useState<Record<string, Trainee[]>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const debouncedSearch = useDebounce(filters.searchTerm, 500);
 
-  const fetchTrainees = useCallback(
-    async (page: number) => {
-      const cacheKey = JSON.stringify({
-        page,
-        ...filters,
-        debouncedSearch,
+  const fetchTrainees = useCallback(async () => {
+    setLoading(true);
+
+    try {
+      const params = {
+        page: pagination.page,
+        limit,
+        status: filters.status,
+        university: filters.universities,
+        major: filters.majors,
+        industry: filters.industries,
+        skills: filters.skills,
+      };
+
+      const res =
+        debouncedSearch.trim().length > 0
+          ? await studentServices.searchStudents(debouncedSearch, params)
+          : await studentServices.getStudents(params);
+
+      const data = res.data?.data ?? [];
+      const meta = res.data?.pagination ?? {};
+
+      setTrainees(data);
+
+      setPagination((prev) => {
+        const currentPage = meta.page ?? prev.page;
+
+        /**
+         * 🔥 SHADCN-FRIENDLY PAGINATION
+         * Selalu izinkan page berikutnya
+         * (karena backend bisa page 2,3,4)
+         */
+        return {
+          ...prev,
+          page: currentPage,
+          totalPages: Math.max(prev.totalPages, currentPage + 1),
+        };
       });
 
-      try {
-        if (cache[cacheKey]) {
-          setTrainees(cache[cacheKey]);
-          setLoading(false);
-          return;
-        }
-
-        setLoading(true);
-        const queryFilters = {
-          page,
-          limit: pagination.limit,
-          ...(filters.status !== "all" && { status: filters.status }),
-          ...(filters.university !== "all" && {
-            university: filters.university,
-          }),
-          ...(filters.major !== "all" && { major: filters.major }),
-          ...(filters.industry !== "all" && { industry: filters.industry }),
-          ...(filters.skill !== "all" && {
-  skills: filters.skill
-    .split(",")
-    .map(s => s.trim())
-    .filter(Boolean),
-}),
-        };
-
-        const res =
-          debouncedSearch.trim().length > 0
-            ? await studentServices.searchStudents(debouncedSearch, queryFilters)
-            : await studentServices.getStudents(queryFilters);
-
-        const fetchedData = res.data?.data || [];
-        const fetchedPagination = res.data?.pagination || {};
-
-        setCache((prev) => ({ ...prev, [cacheKey]: fetchedData }));
-        setTrainees(fetchedData);
-
-        setPagination((prev) => ({
-          ...prev,
-          page: fetchedPagination.page ?? 1,
-          limit: fetchedPagination.limit ?? prev.limit,
-          total: fetchedPagination.total ?? fetchedData.length,
-          totalPages:
-            fetchedPagination.totalPages ??
-            Math.ceil(
-              (fetchedPagination.total ?? fetchedData.length) /
-                (fetchedPagination.limit ?? prev.limit)
-            ),
-        }));
-
-        setError(null);
-      } catch (err) {
-        console.error("Fetch trainees error:", err);
-        setError("Oops! Something went wrong while loading the data.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [filters, pagination.limit, debouncedSearch, cache]
-  );
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load trainees.");
+    } finally {
+      setLoading(false);
+    }
+  }, [debouncedSearch, filters, pagination.page, limit]);
 
   useEffect(() => {
-    fetchTrainees(pagination.page);
-  }, [filters, pagination.page, fetchTrainees]);
+    fetchTrainees();
+  }, [fetchTrainees]);
 
-  const updateFilter = (key: keyof Filters, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-    setPagination((prev) => ({ ...prev, page: 1 }));
-    setCache({});
+  /* ================= FILTER & SEARCH ================= */
+
+  const updateArrayFilter = (key: keyof Filters, values: string[]) => {
+    setFilters((prev) => ({ ...prev, [key]: values }));
+    setPagination({ page: 1, limit, totalPages: 1 });
+  };
+
+  const setSearch = (value: string) => {
+    setFilters((prev) => ({ ...prev, searchTerm: value }));
+    setPagination({ page: 1, limit, totalPages: 1 });
   };
 
   const resetFilters = () => {
     setFilters({
       searchTerm: "",
-      status: "all",
-      university: "all",
-      major: "all",
-      industry: "all",
-      skill: "all",
+      status: [],
+      universities: [],
+      majors: [],
+      industries: [],
+      skills: [],
     });
-    setPagination((prev) => ({ ...prev, page: 1 }));
-    setCache({});
-  };
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
-      setPagination((prev) => ({ ...prev, page: newPage }));
-    }
+    setPagination({ page: 1, limit, totalPages: 1 });
   };
 
   return {
     trainees,
-    pagination,
-    filters,
     loading,
     error,
-    updateFilter,
+    pagination,
+    filters,
+    updateArrayFilter,
     resetFilters,
-    handlePageChange,
+    setPage: (page: number) =>
+      setPagination((prev) => ({ ...prev, page })),
+    search: filters.searchTerm,
+    setSearch,
   };
 };

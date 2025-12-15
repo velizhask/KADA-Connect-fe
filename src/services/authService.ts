@@ -50,10 +50,7 @@ class AuthService {
   }
 
   /** GET BASIC AUTH USER */
-  async getMe() {
-    const res = await axiosInstance.get(API_PATHS.AUTH.ME);
-    return res.data.data;
-  }
+
 
   /** GET FULL PROFILE */
   async getMyProfile() {

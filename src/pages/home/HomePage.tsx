@@ -417,25 +417,24 @@ const HomePage = () => {
             </div>
 
             {/* Dots Indicator */}
-           <div className="flex justify-center gap-2 sm:gap-3 mt-8 sm:mt-10">
-  {testimonials.map((_, index) => (
-    <button
-      key={index}
-      onClick={(e) => {
-        e.stopPropagation();
-        setCurrentIndex(index);
-        setIsPaused(true);
-      }}
-      className={`h-2 sm:h-2.5 rounded-full transition-all cursor-pointer ${
-        index === currentIndex
-          ? "w-8 sm:w-10 bg-primary"
-          : "w-2 sm:w-2.5 bg-gray-300 hover:bg-gray-400"
-      }`}
-      aria-label={`Go to testimonial ${index + 1}`}
-    />
-  ))}
-</div>
-
+            <div className="flex justify-center gap-2 sm:gap-3 mt-8 sm:mt-10">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentIndex(index);
+                    setIsPaused(true);
+                  }}
+                  className={`h-2 sm:h-2.5 rounded-full transition-all cursor-pointer ${
+                    index === currentIndex
+                      ? "w-8 sm:w-10 bg-primary"
+                      : "w-2 sm:w-2.5 bg-gray-300 hover:bg-gray-400"
+                  }`}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>

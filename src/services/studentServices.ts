@@ -7,11 +7,13 @@ import { API_PATHS } from "@/services/apiPath";
 export interface StudentFilters {
   page?: number;
   limit?: number;
-  status?: string;
-  university?: string;
-  major?: string;
-  industry?: string;
+
+  status?: string[];
+  university?: string[];
+  major?: string[];
+  industry?: string[];
   skills?: string[];
+
   [key: string]: any;
 }
 
@@ -29,6 +31,7 @@ export interface StudentPayload {
   isVisible?: boolean;
   [key: string]: any;
 }
+
 
 // ==============================
 // HELPER
@@ -60,36 +63,63 @@ function transformToBackend(data: StudentPayload) {
 export const studentServices = {
   // LIST
   getStudents: (filters?: StudentFilters) =>
-    axiosInstance.get(API_PATHS.STUDENTS.LIST, {
-      params: {
-        page: filters?.page ?? 1,
-        limit: filters?.limit ?? 20,
-        ...(filters?.status && { status: filters.status }),
-        ...(filters?.university && { university: filters.university }),
-        ...(filters?.major && { major: filters.major }),
-        ...(filters?.industry && { industry: filters.industry }),
-        ...(filters?.skills && {
-          skills: filters.skills.join(","),
-        }),
-      },
-    }),
+  axiosInstance.get(API_PATHS.STUDENTS.LIST, {
+    params: {
+      page: filters?.page ?? 1,
+      limit: filters?.limit ?? 10,
+
+      ...(filters?.status?.length && {
+        status: filters.status.join(","),
+      }),
+
+      ...(filters?.university?.length && {
+        university: filters.university.join(","),
+      }),
+
+      ...(filters?.major?.length && {
+        major: filters.major.join(","),
+      }),
+
+      ...(filters?.industry?.length && {
+        industry: filters.industry.join(","),
+      }),
+
+      ...(filters?.skills?.length && {
+        skills: filters.skills.join(","),
+      }),
+    },
+  }),
 
   // SEARCH
   searchStudents: (query: string, filters?: StudentFilters) =>
-    axiosInstance.get(API_PATHS.STUDENTS.SEARCH, {
-      params: {
-        q: query.trim(),
-        page: filters?.page ?? 1,
-        limit: filters?.limit ?? 20,
-        ...(filters?.status && { status: filters.status }),
-        ...(filters?.university && { university: filters.university }),
-        ...(filters?.major && { major: filters.major }),
-        ...(filters?.industry && { industry: filters.industry }),
-        ...(filters?.skills && {
-          skills: filters.skills.join(","),
-        }),
-      },
-    }),
+  axiosInstance.get(API_PATHS.STUDENTS.SEARCH, {
+    params: {
+      q: query.trim(),
+      page: filters?.page ?? 1,
+      limit: filters?.limit ?? 10,
+
+      ...(filters?.status?.length && {
+        status: filters.status.join(","),
+      }),
+
+      ...(filters?.university?.length && {
+        university: filters.university.join(","),
+      }),
+
+      ...(filters?.major?.length && {
+        major: filters.major.join(","),
+      }),
+
+      ...(filters?.industry?.length && {
+        industry: filters.industry.join(","),
+      }),
+
+      ...(filters?.skills?.length && {
+        skills: filters.skills.join(","),
+      }),
+    },
+  }),
+
 
   // DETAIL (UUID STRING ONLY)
   getStudentById: (id: string) =>

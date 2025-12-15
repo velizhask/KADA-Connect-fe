@@ -1,6 +1,36 @@
 import { useEffect, useState } from "react";
-import { lookupServices } from "@/services/lookupServices";
+import { studentServices } from "@/services/studentServices";
+import { companyServices } from "@/services/companyServices";
 
+/* ======================================================
+   🧹 UTILITY: CLEAN STRING LIST (STRING OR OBJECT)
+====================================================== */
+const cleanStringList = (data: any[]): string[] => {
+  return data
+    .map((item) => {
+      // CASE 1: API returns string[]
+      if (typeof item === "string") {
+        return item.trim();
+      }
+
+      // CASE 2: API returns { name: string }
+      if (typeof item?.name === "string") {
+        return item.name.trim();
+      }
+
+      return null;
+    })
+    .filter(
+      (value): value is string =>
+        typeof value === "string" && value.length > 0
+    )
+    // REMOVE DUPLICATES (IMPORTANT FOR YOUR DATA)
+    .filter((value, index, self) => self.indexOf(value) === index);
+};
+
+/* ======================================================
+   🎣 HOOK
+====================================================== */
 export const useLookupFilters = () => {
   const [industries, setIndustries] = useState<string[]>([]);
   const [preferredIndustries, setPreferredIndustries] = useState<string[]>([]);
@@ -20,29 +50,39 @@ export const useLookupFilters = () => {
           univRes,
           majorsRes,
         ] = await Promise.all([
-          lookupServices.getPopularPreferredIndustries(),
-          lookupServices.getPopularIndustries(),
-          lookupServices.getPopularTechRoles(),
-          lookupServices.getPopularTechSkills(),
-          lookupServices.getPopularUniversities(),
-          lookupServices.getPopularMajors(),
+          studentServices.getPreferredIndustries(),
+          companyServices.getIndustries(),
+          companyServices.getTechRoles(),
+          studentServices.getSkills(),
+          studentServices.getUniversities(),
+          studentServices.getMajors(),
         ]);
 
         setPreferredIndustries(
-          preferredIndRes.data?.data?.map((i: any) => i.name) || []
+          cleanStringList(preferredIndRes?.data?.data || [])
         );
 
-        setIndustries(indRes.data?.data?.map((i: any) => i.name) || []);
+        setIndustries(
+          cleanStringList(indRes?.data?.data || [])
+        );
 
-        setTechRoles(techRes.data?.data?.map((r: any) => r.name) || []);
+        setTechRoles(
+          cleanStringList(techRes?.data?.data || [])
+        );
 
-        setSkills(skillsRes.data?.data?.map((s: any) => s.name) || []);
+        setSkills(
+          cleanStringList(skillsRes?.data?.data || [])
+        );
 
-        setUniversities(univRes.data?.data?.map((u: any) => u.name) || []);
+        setUniversities(
+          cleanStringList(univRes?.data?.data || [])
+        );
 
-        setMajors(majorsRes.data?.data?.map((m: any) => m.name) || []);
-      } catch (err) {
-        console.error("Lookup fetch error:", err);
+        setMajors(
+          cleanStringList(majorsRes?.data?.data || [])
+        );
+      } catch (error) {
+        console.error("❌ Failed to fetch lookup filters:", error);
       }
     };
 

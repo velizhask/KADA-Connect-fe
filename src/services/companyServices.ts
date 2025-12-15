@@ -17,96 +17,107 @@ export interface CompanyPayload {
   companyName?: string;
   companySummary?: string;
   industry?: string | string[];
-  companyWebsite?: string;
-  logo?: string | null;
+  website?: string;
   techRoles?: string | string[];
   preferredSkillsets?: string | string[];
-  contactPersonName?: string;
-  contactEmailAddress?: string;
-  contactPhoneNumber?: string;
+
+  contactPerson?: string;
+  contactEmail?: string;
+  contactPhone?: string;
   contactInfoVisible?: boolean;
+
   isVisible?: boolean;
   [key: string]: any;
 }
 
 // ==============================
-// HELPER — Convert camelCase → backend format
+// HELPER
 // ==============================
 
+const normalizeArray = (v?: string | string[]) =>
+  Array.isArray(v) ? v.join(", ") : v;
+
+// ONLY send fields that exist
 function transformToBackend(data: CompanyPayload) {
-  const transformArray = (v: any) =>
-    Array.isArray(v) ? v.join(", ") : v || null;
+  const payload: Record<string, any> = {};
 
-  const payload: any = {
-  companyName: data.companyName,
-  companySummary: data.companySummary,
-  industry: transformArray(data.industry),
-  companyWebsite: data.companyWebsite ?? null,
-  techRoles: transformArray(data.techRoles),
-  preferredSkillsets: transformArray(data.preferredSkillsets),
+  if (data.companyName !== undefined)
+    payload.companyName = data.companyName;
 
-  contactPersonName: data.contactPersonName,
-  contactPerson: data.contactPersonName,
+  if (data.companySummary !== undefined)
+    payload.companySummary = data.companySummary;
 
-  contactEmailAddress: data.contactEmailAddress,
-  contactEmail: data.contactEmailAddress,
+  if (data.industry !== undefined)
+    payload.industry = normalizeArray(data.industry);
 
-  contactPhoneNumber: data.contactPhoneNumber,
-  contactPhone: data.contactPhoneNumber,
+  if (data.website !== undefined)
+    payload.website = data.website;
 
-  visibleContactInfo: data.contactInfoVisible,
-  contactInfoVisible: data.contactInfoVisible,
+  if (data.techRoles !== undefined)
+    payload.techRoles = normalizeArray(data.techRoles);
 
-  emailAddress: data.emailAddress,
-  isVisible: data.isVisible ?? true,
-};
+  if (data.preferredSkillsets !== undefined)
+    payload.preferredSkillsets = normalizeArray(data.preferredSkillsets);
 
+  if (data.contactPerson !== undefined)
+    payload.contactPerson = data.contactPerson;
 
-  if (data.logo) {
-    payload.companyLogo = data.logo;
-  }
+  if (data.contactEmail !== undefined)
+    payload.contactEmail = data.contactEmail;
+
+  if (data.contactPhone !== undefined)
+    payload.contactPhone = data.contactPhone;
+
+  if (data.contactInfoVisible !== undefined)
+    payload.contactInfoVisible = data.contactInfoVisible;
+
+  if (data.isVisible !== undefined)
+    payload.isVisible = data.isVisible;
 
   return payload;
 }
 
-
 // ==============================
 // COMPANY SERVICE
 // ==============================
+
 export const companyServices = {
   // ======================================
-  // GET ALL COMPANIES (public or authed)
+  // GET ALL COMPANIES
   // ======================================
   getCompanies: (filters?: CompanyFilters) =>
     axiosInstance.get(API_PATHS.COMPANIES.LIST, { params: filters }),
 
   // ======================================
-  // GET COMPANY BY ID
+  // GET COMPANY BY ID (UUID)
   // ======================================
-  getCompanyById: (id: string | number) =>
+  getCompanyById: (id: string) =>
     axiosInstance.get(API_PATHS.COMPANIES.DETAIL(id)),
 
   // ======================================
-  // CREATE COMPANY PROFILE (STEP 2)
-  // Backend uses authenticated user.id as company.id
+  // CREATE COMPANY PROFILE
   // ======================================
   createCompanyProfile: (data: CompanyPayload) => {
-    const payload = transformToBackend(data);
-    return axiosInstance.post(API_PATHS.COMPANIES.CREATE, payload);
+    return axiosInstance.post(
+      API_PATHS.COMPANIES.CREATE,
+      transformToBackend(data)
+    );
   },
 
   // ======================================
   // UPDATE COMPANY PROFILE (PATCH)
   // ======================================
-  updateCompanyProfile: (id: string | number, data: CompanyPayload) => {
-    const payload = transformToBackend(data);
-    return axiosInstance.patch(API_PATHS.COMPANIES.UPDATE(id), payload);
+  updateCompanyProfile: (id: string, data: CompanyPayload) => {
+    return axiosInstance.patch(
+      API_PATHS.COMPANIES.UPDATE(id),
+      transformToBackend(data)
+    );
   },
 
   // ======================================
   // DELETE COMPANY
   // ======================================
-  deleteCompany: (id: string | number) =>
+  deleteCompany: (id: string) =>
     axiosInstance.delete(API_PATHS.COMPANIES.DELETE(id)),
 
   // ======================================
@@ -115,7 +126,7 @@ export const companyServices = {
   searchCompanies: (query: string, filters?: CompanyFilters) =>
     axiosInstance.get(API_PATHS.COMPANIES.SEARCH, {
       params: {
-        q: query?.trim(),
+        q: query.trim(),
         ...(filters?.industry && { industry: filters.industry }),
         ...(filters?.techRole && { techRole: filters.techRole }),
         page: filters?.page ?? 1,
@@ -124,35 +135,32 @@ export const companyServices = {
     }),
 
   // ======================================
-  // INDUSTRIES & TECH ROLES
+  // LOOKUPS
   // ======================================
-  getIndustries: () => axiosInstance.get(API_PATHS.COMPANIES.INDUSTRIES),
-  getTechRoles: () => axiosInstance.get(API_PATHS.COMPANIES.TECH_ROLES),
+  getIndustries: () =>
+    axiosInstance.get(API_PATHS.COMPANIES.INDUSTRIES),
+
+  getTechRoles: () =>
+    axiosInstance.get(API_PATHS.COMPANIES.TECH_ROLES),
 
   // ======================================
   // STATS
   // ======================================
-  getStats: () => axiosInstance.get(API_PATHS.COMPANIES.STATS),
+  getStats: () =>
+    axiosInstance.get(API_PATHS.COMPANIES.STATS),
 
   // ======================================
-  // VALIDATE LOGO (URL or upload)
-  // ======================================
-  validateLogo: (data: { logoUrl: string }) =>
-    axiosInstance.post(API_PATHS.COMPANIES.VALIDATE_LOGO, data),
-
-  // ======================================
-  // UPLOAD LOGO — multipart/form-data
+  // LOGO UPLOAD (multipart/form-data)
   // /companies/:id/logo
   // ======================================
   uploadLogo: (id: string, file: File) => {
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("logo", file);
 
-    return axiosInstance.post(API_PATHS.COMPANIES.UPLOAD_LOGO(id), formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    return axiosInstance.post(
+      API_PATHS.COMPANIES.UPLOAD_LOGO(id),
+      formData
+    );
   },
 
   // ======================================
@@ -162,7 +170,7 @@ export const companyServices = {
     axiosInstance.delete(API_PATHS.COMPANIES.DELETE_LOGO(id)),
 
   // ======================================
-  // GET LOGO DETAIL
+  // GET LOGO
   // ======================================
   getLogo: (id: string) =>
     axiosInstance.get(API_PATHS.COMPANIES.GET_LOGO(id)),

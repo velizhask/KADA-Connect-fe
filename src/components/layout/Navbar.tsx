@@ -28,10 +28,12 @@ const Navbar = () => {
   const displayName =
     profile?.fullName || user?.user_metadata?.fullName || user?.email || "User";
 
-  const avatar =
-    profile?.profilePhoto ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}`;
-
+const avatarUrl =
+  role === "student"
+    ? profile?.profilePhoto || null
+    : role === "company"
+    ? profile?.logo || null
+    : null;
   const hasProfile = !!profile;
 
   const profileLink =
@@ -192,16 +194,33 @@ const Navbar = () => {
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-2 rounded-full px-2 py-1 cursor-pointer"
               >
-                <img
-                  src={avatar}
-                  className="w-9 h-9 rounded-full border object-cover"
-                />
+                <div className="w-9 h-9 rounded-full border flex items-center justify-center overflow-hidden bg-gray-100">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={displayName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-5 h-5 text-gray-500" />
+                  )}
+                </div>
               </button>
 
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 min-w-[320px] bg-white shadow-xl rounded-xl overflow-hidden animate-scale-in">
                   <div className="flex items-center gap-3 p-4 border-b">
-                    <img src={avatar} className="w-12 h-12 rounded-full border" />
+                    <div className="w-12 h-12 rounded-full border flex items-center justify-center overflow-hidden bg-gray-100">
+                      {avatarUrl ? (
+                        <img
+                          src={avatarUrl}
+                          alt={displayName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-6 h-6 text-gray-500" />
+                      )}
+                    </div>
                     <div className="min-w-0">
                       <p className="font-semibold truncate">{displayName}</p>
                       <p className="text-xs text-gray-600 truncate">

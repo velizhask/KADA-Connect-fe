@@ -7,34 +7,53 @@ import { useAuthStore } from "@/store/authStore";
 import { getStatusBadgeClass } from "@/utils/trainees/statusBadgeHelper";
 import { useNavigate } from "react-router-dom";
 
+/* =========================
+ * TYPES
+ * ========================= */
 interface Trainee {
   id: string;
   fullName: string;
   status: string;
 
-  // student fields
   employmentStatus?: string;
   batch?: string;
 
-  // company fields
   university?: string;
   major?: string;
   preferredIndustry?: string;
   techStack?: string;
   cvUpload?: string;
 
-  // shared
   profilePhoto?: string;
   portfolioLink?: string;
 }
 
-interface Props {
-  trainee: Trainee;
-}
+/* =========================
+ * HELPERS
+ * ========================= */
+const parseSmartList = (value?: string, limit = 2) => {
+  if (!value) return { show: [], more: 0 };
 
-export const TraineeCard: React.FC<Props> = ({ trainee }) => {
+  const items = value
+    .split(/[,|]/)
+    .map((v) => v.trim())
+    .filter(Boolean);
+
+  const sorted = [...items].sort(
+    (a, b) => a.split(/\s+/).length - b.split(/\s+/).length
+  );
+
+  return {
+    show: sorted.slice(0, limit),
+    more: Math.max(items.length - limit, 0),
+  };
+};
+
+/* =========================
+ * COMPONENT
+ * ========================= */
+const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
   const [isError, setIsError] = useState(false);
-  const photoUrl = trainee.profilePhoto?.trim();
   const navigate = useNavigate();
 
   const role = useAuthStore((s) => s.role);
@@ -45,151 +64,108 @@ export const TraineeCard: React.FC<Props> = ({ trainee }) => {
     setIsError(false);
   }, [trainee.id, trainee.profilePhoto]);
 
-  const parseList = (value?: string, limit = 2) => {
-    if (!value) return { show: [], more: 0 };
-
-    const arr = value
-      .split(/[,|]/)
-      .map((v) => v.trim())
-      .filter(Boolean);
-
-    return {
-      show: arr.slice(0, limit),
-      more: Math.max(arr.length - limit, 0),
-    };
-  };
-
-  const tech = parseList(trainee.techStack, 2);
-  const industry = parseList(trainee.preferredIndustry, 2);
+  const tech = parseSmartList(trainee.techStack);
+  const industry = parseSmartList(trainee.preferredIndustry);
 
   return (
     <Card
       role={!isStudent ? "button" : undefined}
       tabIndex={!isStudent ? 0 : -1}
-      onClick={() => {
-        if (!isStudent) navigate(`/trainees/${trainee.id}`);
-      }}
-      onKeyDown={(e) => {
-        if (!isStudent && e.key === "Enter") {
-          navigate(`/trainees/${trainee.id}`);
-        }
-      }}
-      className={`
-        rounded-2xl border gap-2 border-gray-100 bg-white p-5 transition shadow-none
-        ${
-          !isStudent
-            ? "cursor-pointer hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            : "cursor-default"
-        }
-      `}
+      onClick={() => !isStudent && navigate(`/trainees/${trainee.id}`)}
+      className={`p-5 rounded-2xl border-gray-50 bg-white transition ${
+        !isStudent ? "cursor-pointer hover:shadow-sm" : ""
+      }`}
     >
-      {/* ================= TOP ================= */}
-      <div className="flex items-start justify-between gap-6">
-        {/* LEFT */}
-        <div className="flex gap-4">
-          <div className="h-20 w-20 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center shrink-0">
-            {photoUrl && !isError ? (
-              <img
-                src={photoUrl}
-                alt={trainee.fullName}
-                onError={() => setIsError(true)}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <UserCircle className="w-7 h-7 text-gray-300" />
+      {/* ================= HEADER ================= */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+        {/* PHOTO */}
+        <div className="h-30 w-30 sm:h-24 sm:w-24 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center shrink-0">
+          {trainee.profilePhoto && !isError ? (
+            <img
+              src={trainee.profilePhoto}
+              onError={() => setIsError(true)}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <UserCircle className="w-8 h-8 text-gray-300" />
+          )}
+        </div>
+
+        {/* INFO */}
+        <div className="min-w-0 flex-1 text-center sm:text-left">
+          <h3 className="font-semibold truncate">{trainee.fullName}</h3>
+
+          {/* BADGES */}
+          <div className="mt-1 flex flex-wrap gap-2 justify-center sm:justify-start">
+            <Badge
+              variant="outline"
+              className={`text-xs ${getStatusBadgeClass(trainee.status)}`}
+            >
+              {trainee.status}
+            </Badge>
+
+            {trainee.employmentStatus && (
+              <Badge variant="secondary" className="text-xs">
+                {trainee.employmentStatus}
+              </Badge>
+            )}
+
+            {trainee.batch && (
+              <Badge variant="outline" className="text-xs">
+                {trainee.batch}
+              </Badge>
             )}
           </div>
 
-          <div>
-            <h3 className="text-base font-semibold text-gray-900">
-              {trainee.fullName}
-            </h3>
+          {/* EDUCATION */}
+          {!isStudent && (
+            <>
+              {/* MOBILE */}
+              <div className="mt-2 sm:hidden space-y-0.5 text-sm text-gray-600">
+                {trainee.university && <p>{trainee.university}</p>}
+                {trainee.major && <p>{trainee.major}</p>}
+              </div>
 
-            {/* ===== BADGES (1 ROW) ===== */}
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              {/* STATUS */}
-              <Badge
-                variant="outline"
-                className={`text-xs ${getStatusBadgeClass(trainee.status)}`}
-              >
-                {trainee.status}
-              </Badge>
-
-              <Badge variant="secondary" className="text-xs font-medium">
-                {trainee.employmentStatus}
-              </Badge>
-
-              <Badge variant="outline" className="text-xs font-medium">
-                {trainee.batch}
-              </Badge>
-            </div>
-
-            {/* SUBTITLE */}
-            {isStudent ? (
-              <></>
-            ) : (
-              <p className="mt-1 text-sm text-gray-600">
+              {/* DESKTOP */}
+              <p className="hidden sm:block mt-1 text-sm text-gray-600 truncate">
                 {trainee.university || "-"}
                 {trainee.major && ` · ${trainee.major}`}
               </p>
+            </>
+          )}
+        </div>
+
+        {/* DESKTOP ACTIONS */}
+        {!isStudent && (
+          <div className="hidden sm:flex gap-2">
+            {canDownloadCV && trainee.cvUpload && (
+              <Button size="sm" asChild onClick={(e) => e.stopPropagation()}>
+                <a href={trainee.cvUpload} target="_blank">
+                  Download CV
+                </a>
+              </Button>
+            )}
+
+            {trainee.portfolioLink && (
+              <Button size="sm" variant="outline" asChild>
+                <a href={trainee.portfolioLink} target="_blank">
+                  Portfolio <ExternalLink className="w-3 h-3 ml-1" />
+                </a>
+              </Button>
             )}
           </div>
-        </div>
-
-        {/* RIGHT ACTIONS */}
-        <div className="flex items-center gap-2 shrink-0">
-          {!isStudent && canDownloadCV && trainee.cvUpload && (
-            <Button
-              size="sm"
-              className="h-8 px-4"
-              onClick={(e) => e.stopPropagation()}
-              asChild
-            >
-              <a
-                href={trainee.cvUpload}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Download CV
-              </a>
-            </Button>
-          )}
-
-          {trainee.portfolioLink && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 px-4 flex items-center gap-1.5"
-              onClick={(e) => e.stopPropagation()}
-              asChild
-            >
-              <a
-                href={trainee.portfolioLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Portfolio <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </Button>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* ================= BOTTOM (COMPANY ONLY) ================= */}
+      {/* ================= SKILLS & INDUSTRY ================= */}
       {!isStudent && (
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {tech.show.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">
-                Tech Skills
-              </p>
+              <p className="text-xs text-gray-500 mb-1">Tech Skills</p>
               <div className="flex flex-wrap gap-2">
                 {tech.show.map((t) => (
-                  <Badge
-                    key={t}
-                    variant="secondary"
-                    className="text-xs px-2 py-0.5 rounded-full"
-                  >
+                  <Badge key={t} variant="secondary" className="text-xs">
                     {t}
                   </Badge>
                 ))}
@@ -204,16 +180,12 @@ export const TraineeCard: React.FC<Props> = ({ trainee }) => {
 
           {industry.show.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">
+              <p className="text-xs text-gray-500 mb-1">
                 Preferred Industry
               </p>
               <div className="flex flex-wrap gap-2">
                 {industry.show.map((i) => (
-                  <Badge
-                    key={i}
-                    variant="secondary"
-                    className="text-xs px-2 py-0.5 rounded-full"
-                  >
+                  <Badge key={i} variant="secondary" className="text-xs">
                     {i}
                   </Badge>
                 ))}
@@ -224,6 +196,27 @@ export const TraineeCard: React.FC<Props> = ({ trainee }) => {
                 )}
               </div>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ================= MOBILE ACTIONS ================= */}
+      {!isStudent && (
+        <div className="mt-4 flex flex-col gap-2 sm:hidden">
+          {canDownloadCV && trainee.cvUpload && (
+            <Button size="sm" className="shadow-none" asChild>
+              <a href={trainee.cvUpload} target="_blank">
+                Download CV
+              </a>
+            </Button>
+          )}
+
+          {trainee.portfolioLink && (
+            <Button size="sm" variant="outline" className="shadow-none" asChild>
+              <a href={trainee.portfolioLink} target="_blank">
+                Portfolio <ExternalLink className="w-3 h-3 ml-1" />
+              </a>
+            </Button>
           )}
         </div>
       )}

@@ -13,98 +13,118 @@ export default function ChooseAccountPage() {
   >(null);
 
   const handleContinue = () => {
+    if (!selectedType) return;
     setLoading(true);
-    if (selectedType === "company") {
-      navigate("/register/company");
-    } else {
-      navigate("/register/trainee");
-    }
+
+    navigate(
+      selectedType === "company"
+        ? "/register/company"
+        : "/register/trainee"
+    );
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-4xl p-10 text-center shadow-none border-0 space-y-6">
+      <Card className="w-full max-w-4xl p-6 md:p-10 text-center border-0 shadow-none space-y-6">
         {/* LOGO */}
-        <div className="flex items-center justify-center">
+        <div className="flex justify-center">
           <img src={KADALOGO} width={120} alt="KADA Logo" />
         </div>
 
         {/* TITLE */}
-        <h2 className="text-2xl font-semibold text-center mb-2">
+        <h2 className="text-xl md:text-2xl mb-0 font-semibold">
           What are you?
         </h2>
 
-        {/* CHECKBOX OPTIONS */}
-        <div className="flex justify-center gap-6 w-full mb-0">
-          {/* Company */}
+        {/* OPTIONS */}
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full mb-0">
+          {/* COMPANY */}
           <button
+            type="button"
             onClick={() => setSelectedType("company")}
             className={`
-      px-8 py-6 rounded-2xl border-2 flex gap-4 min-w-[300px] cursor-pointer
-      transition-all text-left items-center
-      ${
-        selectedType === "company"
-          ? "border-purple-500 bg-purple-50"
-          : "border-gray-300 bg-white"
-      }
-    `}
+              w-full md:w-1/2
+              px-6 md:px-8 py-5 md:py-6
+              rounded-2xl border-2
+              flex gap-4 items-center text-left
+              transition-all
+              cursor-pointer
+              ${
+                selectedType === "company"
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-card"
+              }
+            `}
           >
-            {/* Checkbox */}
+            {/* CHECKBOX */}
             <div
               className={`
-        w-6 h-6 rounded-md border-2 flex items-center justify-center
-        ${
-          selectedType === "company"
-            ? "bg-purple-600 border-purple-600"
-            : "border-gray-400"
-        }
-      `}
+                w-6 h-6 rounded-md border-2
+                flex items-center justify-center
+                
+                ${
+                  selectedType === "company"
+                    ? "bg-primary border-primary"
+                    : "border-muted-foreground"
+                }
+              `}
             >
               {selectedType === "company" && (
-                <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
               )}
             </div>
 
-            {/* Text */}
+            {/* TEXT */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Company</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="text-base md:text-lg font-semibold">
+                Company
+              </h3>
+              <p className="text-sm text-muted-foreground">
                 I'm a company looking for talents
               </p>
             </div>
           </button>
 
-          {/* Trainee */}
+          {/* TRAINEE */}
           <button
+            type="button"
             onClick={() => setSelectedType("trainee")}
             className={`
-      px-8 py-6 rounded-2xl border-2 flex gap-4 min-w-[300px] cursor-pointer
-      transition-all text-left items-center
-      ${
-        selectedType === "trainee"
-          ? "border-purple-500 bg-purple-50"
-          : "border-gray-300 bg-white"
-      }
-    `}
+              w-full md:w-1/2
+              px-6 md:px-8 py-5 md:py-6
+              rounded-2xl border-2
+              flex gap-4 items-center text-left
+              transition-all
+              cursor-pointer
+
+              ${
+                selectedType === "trainee"
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-card"
+              }
+            `}
           >
             <div
               className={`
-        w-6 h-6 rounded-md border-2 flex items-center justify-center
-        ${
-          selectedType === "trainee"
-            ? "bg-purple-600 border-purple-600"
-            : "border-gray-400"
-        }
-      `}
+                w-6 h-6 rounded-md border-2
+                flex items-center justify-center
+                ${
+                  selectedType === "trainee"
+                    ? "bg-primary border-primary"
+                    : "border-muted-foreground"
+                }
+              `}
             >
               {selectedType === "trainee" && (
-                <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
               )}
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Trainee</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="text-base md:text-lg font-semibold">
+                Trainee
+              </h3>
+              <p className="text-sm text-muted-foreground">
                 I'm a trainee finding opportunities
               </p>
             </div>
@@ -116,23 +136,28 @@ export default function ChooseAccountPage() {
           onClick={handleContinue}
           disabled={loading || !selectedType}
           className={`
-    w-40 h-12 mb-0 text-lg font-medium mx-auto
-    ${
-      !selectedType
-        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-        : "bg-purple-600 hover:bg-purple-700 text-white cursor-pointer"
-    }
-  `}
+              cursor-pointer
+              mb-0
+            w-full md:w-40 h-12 mx-auto text-base md:text-lg
+            ${
+              !selectedType
+                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                : "bg-primary hover:bg-primary/90 text-primary-foreground"
+            }
+          `}
         >
           Continue
         </Button>
 
         {/* LOGIN LINK */}
-        <div className=" text-center text-sm">
-          <span className="text-gray-600">Already have an account? </span>
+        <div className="text-center text-sm">
+          <span className="text-muted-foreground">
+            Already have an account?{" "}
+          </span>
           <button
+            type="button"
             onClick={() => navigate("/login")}
-            className="text-blue-600 decoration-blue-600 underline-offset-2 hover:underline font-medium cursor-pointer"
+            className="cursor-pointer text-primary hover:underline font-medium"
           >
             Login
           </button>

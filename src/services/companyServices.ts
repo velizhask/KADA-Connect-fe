@@ -8,27 +8,31 @@ import { API_PATHS } from "@/services/apiPath";
 export interface CompanyFilters {
   page?: number;
   limit?: number;
-  industry?: string;
-  techRole?: string;
+  industry?: string[];  
+  techRole?: string[];   
   [key: string]: any;
 }
 
 export interface CompanyPayload {
+  emailAddress?: string;
+
   companyName?: string;
   companySummary?: string;
   industry?: string | string[];
-  website?: string;
+  companyWebsite?: string;
+  linkedin?: string;
+
   techRoles?: string | string[];
   preferredSkillsets?: string | string[];
 
-  contactPerson?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  contactInfoVisible?: boolean;
+  contactPersonName?: string;
+  contactEmailAddress?: string;
+  contactPhoneNumber?: string;
+  visibleContactInfo?: boolean;
 
   isVisible?: boolean;
-  [key: string]: any;
 }
+
 
 // ==============================
 // HELPER
@@ -41,6 +45,9 @@ const normalizeArray = (v?: string | string[]) =>
 function transformToBackend(data: CompanyPayload) {
   const payload: Record<string, any> = {};
 
+  if (data.emailAddress !== undefined)
+    payload.emailAddress = data.emailAddress;
+
   if (data.companyName !== undefined)
     payload.companyName = data.companyName;
 
@@ -50,32 +57,36 @@ function transformToBackend(data: CompanyPayload) {
   if (data.industry !== undefined)
     payload.industry = normalizeArray(data.industry);
 
-  if (data.website !== undefined)
-    payload.website = data.website;
-
   if (data.techRoles !== undefined)
     payload.techRoles = normalizeArray(data.techRoles);
 
   if (data.preferredSkillsets !== undefined)
     payload.preferredSkillsets = normalizeArray(data.preferredSkillsets);
 
-  if (data.contactPerson !== undefined)
-    payload.contactPerson = data.contactPerson;
+  if (data.companyWebsite !== undefined)
+    payload.companyWebsite = data.companyWebsite;
 
-  if (data.contactEmail !== undefined)
-    payload.contactEmail = data.contactEmail;
+  if (data.linkedin !== undefined)
+    payload.linkedin = data.linkedin;
 
-  if (data.contactPhone !== undefined)
-    payload.contactPhone = data.contactPhone;
+  if (data.contactPersonName !== undefined)
+    payload.contactPersonName = data.contactPersonName;
 
-  if (data.contactInfoVisible !== undefined)
-    payload.contactInfoVisible = data.contactInfoVisible;
+  if (data.contactEmailAddress !== undefined)
+    payload.contactEmailAddress = data.contactEmailAddress;
+
+  if (data.contactPhoneNumber !== undefined)
+    payload.contactPhoneNumber = data.contactPhoneNumber;
+
+  if (data.visibleContactInfo !== undefined)
+    payload.visibleContactInfo = data.visibleContactInfo;
 
   if (data.isVisible !== undefined)
     payload.isVisible = data.isVisible;
 
   return payload;
 }
+
 
 // ==============================
 // COMPANY SERVICE
@@ -85,8 +96,21 @@ export const companyServices = {
   // ======================================
   // GET ALL COMPANIES
   // ======================================
-  getCompanies: (filters?: CompanyFilters) =>
-    axiosInstance.get(API_PATHS.COMPANIES.LIST, { params: filters }),
+getCompanies: (filters?: CompanyFilters) =>
+  axiosInstance.get(API_PATHS.COMPANIES.LIST, {
+    params: {
+      page: filters?.page ?? 1,
+      limit: filters?.limit ?? 10,
+
+      ...(filters?.industry?.length && {
+        industry: filters.industry.join(","),
+      }),
+
+      ...(filters?.techRole?.length && {
+        techRole: filters.techRole.join(","), 
+      }),
+    },
+  }),
 
   // ======================================
   // GET COMPANY BY ID (UUID)
@@ -124,16 +148,21 @@ export const companyServices = {
   // SEARCH COMPANIES
   // ======================================
   searchCompanies: (query: string, filters?: CompanyFilters) =>
-    axiosInstance.get(API_PATHS.COMPANIES.SEARCH, {
-      params: {
-        q: query.trim(),
-        ...(filters?.industry && { industry: filters.industry }),
-        ...(filters?.techRole && { techRole: filters.techRole }),
-        page: filters?.page ?? 1,
-        limit: filters?.limit ?? 20,
-      },
-    }),
+  axiosInstance.get(API_PATHS.COMPANIES.SEARCH, {
+    params: {
+      q: query.trim(),
+      page: filters?.page ?? 1,
+      limit: filters?.limit ?? 10,
 
+      ...(filters?.industry?.length && {
+        industry: filters.industry.join(","),
+      }),
+
+      ...(filters?.techRole?.length && {
+        techRole: filters.techRole.join(","),
+      }),
+    },
+  }),
   // ======================================
   // LOOKUPS
   // ======================================

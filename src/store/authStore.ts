@@ -9,7 +9,17 @@ interface AuthState {
 
   isAuthLoaded: boolean;
 
+  // 🧓 LEGACY (JANGAN DIHAPUS)
   setAuth: (data: Partial<AuthState>) => void;
+
+  // ✅ NEW (AMAN)
+  setSession: (data: {
+    accessToken: string;
+    refreshToken?: string;
+    user: any;
+    profile?: any;
+  }) => void;
+
   clearAuth: () => void;
   loadFromStorage: () => void;
 }
@@ -23,9 +33,34 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   isAuthLoaded: false,
 
+  // ======================
+  // LEGACY (dipakai banyak file)
+  // ======================
   setAuth: (data) =>
     set((prev) => {
-      const updated = { ...prev, ...data };
+      const updated = {
+        ...prev,
+        ...data,
+        isAuthLoaded: true, // 🔒 penting
+      };
+      localStorage.setItem("auth", JSON.stringify(updated));
+      return updated;
+    }),
+
+  // ======================
+  // NEW (RECOMMENDED)
+  // ======================
+  setSession: ({ accessToken, refreshToken, user, profile }) =>
+    set((prev) => {
+      const updated = {
+        ...prev,
+        accessToken,
+        refreshToken: refreshToken ?? prev.refreshToken,
+        user,
+        role: user?.role ?? prev.role,
+        profile: profile ?? prev.profile,
+        isAuthLoaded: true,
+      };
       localStorage.setItem("auth", JSON.stringify(updated));
       return updated;
     }),
@@ -42,9 +77,15 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
+  // ======================
+  // LOAD SESSION (ON APP START)
+  // ======================
   loadFromStorage: () => {
     const raw = localStorage.getItem("auth");
-    if (!raw) return set({ isAuthLoaded: true });
+    if (!raw) {
+      set({ isAuthLoaded: true });
+      return;
+    }
 
     try {
       const parsed = JSON.parse(raw);

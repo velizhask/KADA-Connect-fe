@@ -24,6 +24,8 @@ import KADALOGO from "@/assets/logo/kadalogo.png";
 import { useNavigate } from "react-router-dom";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RegisterCompanyStep1() {
   const navigate = useNavigate();
@@ -83,23 +85,20 @@ export default function RegisterCompanyStep1() {
       setAuth({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
-        user: res.user,
+        user: {
+          ...res.user,
+          email: form.email,
+        },
         role: res.role,
       });
 
-      // SAVE STEP 1
-      localStorage.setItem(
-        "company_step1",
-        JSON.stringify({
-          fullName: form.fullName,
-          email: form.email,
-          password: form.password,
-        })
-      );
-
       navigate("/register/company/details");
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to create company account");
+  toast.error(
+    err?.response?.data?.error ||
+    err?.response?.data?.message ||
+    "Failed to create company account"
+  );
     } finally {
       setLoading(false);
     }
@@ -107,24 +106,20 @@ export default function RegisterCompanyStep1() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-{showTermsModal && (
-  <TermsModal
-    onClose={() => setShowTermsModal(false)}
-    onAgree={() =>
-      setAgreements((prev) => ({ ...prev, terms: true }))
-    }
-  />
-)}
+      <Toaster richColors position="top-center" />
+      {showTermsModal && (
+        <TermsModal
+          onClose={() => setShowTermsModal(false)}
+          onAgree={() => setAgreements((prev) => ({ ...prev, terms: true }))}
+        />
+      )}
 
-{showPrivacyModal && (
-  <PrivacyPolicyModal
-    onClose={() => setShowPrivacyModal(false)}
-    onAgree={() =>
-      setAgreements((prev) => ({ ...prev, privacy: true }))
-    }
-  />
-)}
-
+      {showPrivacyModal && (
+        <PrivacyPolicyModal
+          onClose={() => setShowPrivacyModal(false)}
+          onAgree={() => setAgreements((prev) => ({ ...prev, privacy: true }))}
+        />
+      )}
 
       <Card className="w-full max-w-lg p-8 border-0 shadow-none">
         {/* LOGO */}

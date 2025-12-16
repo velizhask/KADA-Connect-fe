@@ -7,17 +7,35 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Building2, Globe, Linkedin, FileText, Tag, Phone } from "lucide-react";
+import {
+  Building2,
+  Globe,
+  FileText,
+  Tag,
+  Phone,
+  User2,
+  MailPlus,
+} from "lucide-react";
 
 import KADALOGO from "@/assets/logo/kadalogo.png";
 import { companyServices } from "@/services/companyServices";
+import { useAuthStore } from "@/store/authStore";
 import { useAuthMeStore } from "@/store/authMeStore";
+import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RegisterCompanyStep2() {
   const navigate = useNavigate();
   const fetchProfile = useAuthMeStore((s) => s.fetchProfile);
 
   const [loading, setLoading] = useState(false);
+
+  const accountEmail = useAuthStore((s) => s.user?.email);
+  if (!accountEmail) {
+    toast.error("Account email not found. Please login again.");
+    navigate("/login");
+  }
 
   const [form, setForm] = useState({
     companyName: "",
@@ -27,6 +45,9 @@ export default function RegisterCompanyStep2() {
     sectors: [] as string[],
     skills: [] as string[],
     roles: [] as string[],
+
+    contactPersonName: "",
+    contactEmailAddress: "",
     phone: "",
     contactInfoVisible: false,
   });
@@ -45,6 +66,8 @@ export default function RegisterCompanyStep2() {
 
   const isValid =
     form.companyName &&
+    form.contactPersonName &&
+    form.contactEmailAddress &&
     form.summary.length >= 10 &&
     form.sectors.length &&
     form.skills.length &&
@@ -79,38 +102,33 @@ export default function RegisterCompanyStep2() {
     setLoading(true);
 
     try {
-      const step1 = JSON.parse(localStorage.getItem("company_step1") || "{}");
 
-      const payload = {
-        companyName: form.companyName,
-        companySummary: form.summary,
+     const payload = {
+  emailAddress: accountEmail,
 
-        industry: form.sectors,
-        techRoles: form.roles,
-        preferredSkillsets: form.skills,
+  companyName: form.companyName,
+  companySummary: form.summary,
 
-        companyWebsite: form.website,
-        linkedin: form.linkedin,
+  industry: form.sectors,
+  techRoles: form.roles,
+  preferredSkillsets: form.skills,
 
-        contactPersonName: step1.fullName,
-        contactEmailAddress: step1.email,
-        contactPhoneNumber: form.phone,
-        contactInfoVisible: form.contactInfoVisible,
+  companyWebsite: form.website,
 
-        emailAddress: step1.email,
-        isVisible: true,
-      };
+  contactPersonName: form.contactPersonName,
+  contactEmailAddress: form.contactEmailAddress,
+  contactPhoneNumber: form.phone,
+  visibleContactInfo: form.contactInfoVisible,
+
+  isVisible: true,
+};
 
       await companyServices.createCompanyProfile(payload);
 
       await fetchProfile();
-
-      localStorage.removeItem("company_step1");
-      localStorage.removeItem("company_step2");
-
       navigate("/companies/me");
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Company registration failed");
+      toast(err?.response?.data?.message || "Company registration failed");
     } finally {
       setLoading(false);
     }
@@ -118,6 +136,7 @@ export default function RegisterCompanyStep2() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <Toaster richColors position="top-center" />
       <Card className="w-full max-w-lg p-8 border-0 shadow-none">
         <div className="flex justify-center">
           <img src={KADALOGO} width={120} />
@@ -152,16 +171,6 @@ export default function RegisterCompanyStep2() {
           </div>
 
           <div className="relative">
-            <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <Input
-              className="pl-10 h-12"
-              placeholder="LinkedIn URL (https://linkedin.com/in/company)"
-              value={form.linkedin}
-              onChange={(e) => update("linkedin", e.target.value)}
-            />
-          </div>
-
-          <div className="relative">
             <FileText className="absolute left-3 top-4 text-gray-400" />
             <textarea
               className="w-full pl-10 pr-4 py-3 border rounded-md"
@@ -170,6 +179,29 @@ export default function RegisterCompanyStep2() {
               onChange={(e) => update("summary", e.target.value)}
             />
           </div>
+          {/* CONTACT PERSON NAME */}
+          <div className="relative">
+            <User2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Input
+              className="pl-10 h-12"
+              placeholder="Contact Person Name"
+              value={form.contactPersonName}
+              onChange={(e) => update("contactPersonName", e.target.value)}
+            />
+          </div>
+
+          {/* CONTACT EMAIL */}
+          <div className="relative">
+            <MailPlus className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Input
+              type="email"
+              className="pl-10 h-12"
+              placeholder="Contact Email"
+              value={form.contactEmailAddress}
+              onChange={(e) => update("contactEmailAddress", e.target.value)}
+            />
+          </div>
+
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <Input
@@ -180,14 +212,29 @@ export default function RegisterCompanyStep2() {
             />
           </div>
 
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              checked={form.contactInfoVisible}
-              onChange={(e) => update("contactInfoVisible", e.target.checked)}
-            />
-            <span className="text-sm">Show contact information publicly</span>
-          </div>
+          {/* CONTACT VISIBILITY */}
+<div className="w-full bg-gray-50 rounded-xl p-4 space-y-2">
+  <label className="flex items-start gap-3 cursor-pointer">
+    <Checkbox
+      checked={form.contactInfoVisible}
+      onCheckedChange={(checked) =>
+        update("contactInfoVisible", Boolean(checked))
+      }
+      className="mt-1 cursor-pointer"
+    />
+
+    <div className="space-y-1">
+      <p className="text-sm font-medium text-gray-900">
+        Show contact information publicly
+      </p>
+      <p className="text-xs text-gray-500 leading-relaxed">
+        Your contact person name, email, and phone number will be visible to
+        trainees and partner companies.
+      </p>
+    </div>
+  </label>
+</div>
+
 
           {/* SECTORS */}
           <div>
@@ -290,7 +337,7 @@ export default function RegisterCompanyStep2() {
         </div>
 
         <Button
-          className="w-full h-12 mt-6"
+          className="w-full h-12 mt-6 cursor-pointer"
           disabled={!isValid || loading}
           onClick={handleSubmit}
         >

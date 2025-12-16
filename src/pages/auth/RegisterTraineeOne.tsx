@@ -24,6 +24,8 @@ import KADALOGO from "@/assets/logo/kadalogo.png";
 import { useNavigate } from "react-router-dom";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RegisterTraineeStep1() {
   const navigate = useNavigate();
@@ -99,7 +101,7 @@ export default function RegisterTraineeStep1() {
 
       navigate("/register/trainee/details");
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to create Trainee account");
+      toast(err?.response?.data?.message || "Failed to create Trainee account");
     } finally {
       setLoading(false);
     }
@@ -107,24 +109,20 @@ export default function RegisterTraineeStep1() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-{showTermsModal && (
-  <TermsModal
-    onClose={() => setShowTermsModal(false)}
-    onAgree={() =>
-      setAgreements((prev) => ({ ...prev, terms: true }))
-    }
-  />
-)}
+      <Toaster richColors position="top-center" />
+      {showTermsModal && (
+        <TermsModal
+          onClose={() => setShowTermsModal(false)}
+          onAgree={() => setAgreements((prev) => ({ ...prev, terms: true }))}
+        />
+      )}
 
-{showPrivacyModal && (
-  <PrivacyPolicyModal
-    onClose={() => setShowPrivacyModal(false)}
-    onAgree={() =>
-      setAgreements((prev) => ({ ...prev, privacy: true }))
-    }
-  />
-)}
-
+      {showPrivacyModal && (
+        <PrivacyPolicyModal
+          onClose={() => setShowPrivacyModal(false)}
+          onAgree={() => setAgreements((prev) => ({ ...prev, privacy: true }))}
+        />
+      )}
 
       <Card className="w-full max-w-lg p-8 border-0 shadow-none">
         {/* LOGO */}

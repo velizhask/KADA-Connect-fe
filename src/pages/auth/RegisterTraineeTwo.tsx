@@ -18,6 +18,8 @@ import {
 import KADALOGO from "@/assets/logo/kadalogo.png";
 import { studentServices } from "@/services/studentServices";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RegisterTraineeStep2() {
   const navigate = useNavigate();
@@ -119,7 +121,7 @@ export default function RegisterTraineeStep2() {
       localStorage.removeItem("trainee_step1");
       navigate("/trainees/me");
     } catch (err: any) {
-      alert(
+      toast(
         err?.response?.data?.message ||
           "Failed to complete trainee registration"
       );
@@ -133,6 +135,7 @@ export default function RegisterTraineeStep2() {
   // ======================================================
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <Toaster richColors position="top-center" />
       <Card className="w-full max-w-lg p-8 border-0 shadow-none">
         {/* LOGO */}
         <div className="flex justify-center">

@@ -1,4 +1,3 @@
-// src/services/axiosInstance.ts
 import axios from "axios";
 import { API_BASE_URL } from "@/services/apiPath";
 import { useAuthStore } from "@/store/authStore";
@@ -9,7 +8,7 @@ const axiosInstance = axios.create({
 });
 
 // ======================
-// REQUEST INTERCEPTOR
+// REQUEST
 // ======================
 axiosInstance.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
@@ -22,7 +21,7 @@ axiosInstance.interceptors.request.use((config) => {
 });
 
 // ======================
-// RESPONSE INTERCEPTOR
+// RESPONSE (REFRESH TOKEN)
 // ======================
 axiosInstance.interceptors.response.use(
   (res) => res,
@@ -35,23 +34,28 @@ axiosInstance.interceptors.response.use(
 
     original._retry = true;
 
-    const { refreshToken, setAuth, clearAuth } = useAuthStore.getState();
+    const { refreshToken, setSession, clearAuth, user } =
+      useAuthStore.getState();
 
-    if (!refreshToken) {
+    if (!refreshToken || !user) {
       clearAuth();
       return Promise.reject(error);
     }
 
     try {
-      const resp = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+      const resp = await axiosInstance.post("/auth/refresh", {
         refreshToken,
       });
 
-      const newToken = resp.data.data.accessToken;
+      const newAccessToken = resp.data.data.accessToken;
 
-      setAuth({ accessToken: newToken });
+      setSession({
+        accessToken: newAccessToken,
+        refreshToken,
+        user,
+      });
 
-      original.headers.Authorization = `Bearer ${newToken}`;
+      original.headers.Authorization = `Bearer ${newAccessToken}`;
 
       return axiosInstance(original);
     } catch {

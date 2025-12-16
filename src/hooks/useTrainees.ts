@@ -58,20 +58,18 @@ export const useTrainees = (limit = 10) => {
 
       setTrainees(data);
 
-      setPagination((prev) => {
-        const currentPage = meta.page ?? prev.page;
+     setPagination((prev) => {
+  const currentPage = meta.page ?? prev.page;
+  const isLastPage = data.length < limit;
 
-        /**
-         * 🔥 SHADCN-FRIENDLY PAGINATION
-         * Selalu izinkan page berikutnya
-         * (karena backend bisa page 2,3,4)
-         */
-        return {
-          ...prev,
-          page: currentPage,
-          totalPages: Math.max(prev.totalPages, currentPage + 1),
-        };
-      });
+  return {
+    ...prev,
+    page: currentPage,
+    totalPages: isLastPage
+      ? currentPage
+      : Math.max(prev.totalPages, currentPage + 1),
+  };
+});
 
       setError(null);
     } catch (err) {

@@ -102,11 +102,9 @@ function App() {
           {/* Public trainee profile */}
 
           {/* Public company profile */}
-          <Route path="/companies/:id" element={<CompanyPublicProfile />} />
         </Route>
 
-        {/* 404 PAGE                                              */}
-        <Route path="*" element={<NotFoundPage />} />
+        {/* AUTHENTICATED USER ROUTES LV.2                             */}
         <Route
           element={
             <ProtectedRoute requireAuth allowedRoles={["company", "admin"]} />
@@ -114,6 +112,16 @@ function App() {
         >
           <Route path="/trainees/:id" element={<TraineePublicProfile />} />
         </Route>
+        <Route
+          element={
+            <ProtectedRoute requireAuth allowedRoles={["student", "admin"]} />
+          }
+        >
+          <Route path="/companies/:id" element={<CompanyPublicProfile />} />
+        </Route>
+
+        {/* 404 PAGE                                              */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

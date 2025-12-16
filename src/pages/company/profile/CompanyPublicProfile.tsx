@@ -9,7 +9,7 @@ import { companyServices } from "@/services/companyServices";
 import MainLayout from "@/layouts/MainLayout";
 
 import { Card } from "@/components/ui/card";
-import { Mail, Globe, Building2, User2 } from "lucide-react";
+import { Mail, Globe, User2 } from "lucide-react";
 
 /* ===============================
  * TYPES (MATCH BACKEND RESPONSE)
@@ -206,12 +206,6 @@ const Section = ({ title, children }: any) => (
   </div>
 );
 
-const InlineInfo = ({ icon, text }: any) => (
-  <div className="flex items-center gap-2 text-gray-700">
-    {icon}
-    <span>{text}</span>
-  </div>
-);
 
 const IconButton = ({ icon, onClick }: any) => (
   <button

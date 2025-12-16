@@ -16,7 +16,6 @@ export const useTrainees = (limit = 10) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ⬅️ totalPages DIKONTROL FE
   const [pagination, setPagination] = useState({
     page: 1,
     limit,
@@ -58,18 +57,18 @@ export const useTrainees = (limit = 10) => {
 
       setTrainees(data);
 
-     setPagination((prev) => {
-  const currentPage = meta.page ?? prev.page;
-  const isLastPage = data.length < limit;
+      setPagination((prev) => {
+        const currentPage = meta.page ?? prev.page;
+        const isLastPage = data.length < limit;
 
-  return {
-    ...prev,
-    page: currentPage,
-    totalPages: isLastPage
-      ? currentPage
-      : Math.max(prev.totalPages, currentPage + 1),
-  };
-});
+        return {
+          ...prev,
+          page: currentPage,
+          totalPages: isLastPage
+            ? currentPage
+            : Math.max(prev.totalPages, currentPage + 1),
+        };
+      });
 
       setError(null);
     } catch (err) {
@@ -116,8 +115,7 @@ export const useTrainees = (limit = 10) => {
     filters,
     updateArrayFilter,
     resetFilters,
-    setPage: (page: number) =>
-      setPagination((prev) => ({ ...prev, page })),
+    setPage: (page: number) => setPagination((prev) => ({ ...prev, page })),
     search: filters.searchTerm,
     setSearch,
   };

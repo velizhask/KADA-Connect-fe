@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import MainLayout from "@/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,128 +38,36 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { adminService } from "@/services/adminServices";
 import { useNavigate } from "react-router-dom";
-
-/* ================= TYPES ================= */
-
-type AdminUser = {
-  id: string;
-  role: "Company" | "Trainee";
-  name: string;
-  email: string | null;
-  isVisible: boolean;
-  avatar?: string;
-};
-
-/* ================= COMPONENT ================= */
+import { useUsers, type AdminUser } from "@/hooks/useUsers";
 
 export default function UserManagement() {
   const navigate = useNavigate();
 
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<AdminUser[]>([]);
+  const {
+    users, // Already paginated from backend
+    loading,
+    pagination,
+    filters,
+    setRoleFilter,
+    setVisibilityFilter,
+    setSearch,
+    resetFilters,
+    setPage,
+    toggleVisibility,
+    bulkSetVisibility,
+    deleteUser,
+  } = useUsers(10);
+
   const [selected, setSelected] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
-  
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  
-  // Filter state
-  const [roleFilter, setRoleFilter] = useState<"All" | "Company" | "Trainee">("All");
-  const [visibilityFilter, setVisibilityFilter] = useState<"All" | "Visible" | "Hidden">("All");
 
-  /* ================= FETCH USERS ================= */
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const [studentsRes, companiesRes] = await Promise.all([
-        adminService.getStudents({}),
-        adminService.getCompanies({}),
-      ]);
-
-      const students = studentsRes.data.data ?? [];
-      const companies = companiesRes.data.data ?? [];
-
-      const traineeUsers: AdminUser[] = students.map((s: any) => ({
-        id: s.id,
-        role: "Trainee",
-        name: s.fullName,
-        email: s.email,
-        isVisible: Boolean(s.isVisible),
-        avatar: s.profilePhoto,
-      }));
-
-      const companyUsers: AdminUser[] = companies.map((c: any) => ({
-        id: c.id,
-        role: "Company",
-        name: c.companyName,
-        email: c.email,
-        isVisible: Boolean(c.isVisible),
-        avatar: c.logo,
-      }));
-
-      const allUsers = [...traineeUsers, ...companyUsers];
-      setUsers(allUsers);
-      setFilteredUsers(allUsers);
-      setTotalItems(allUsers.length);
-      setSelected([]);
-    } catch (e) {
-      console.error("Failed to fetch users", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  /* ================= FRONTEND FILTERING & SEARCH ================= */
-
-  useEffect(() => {
-    let result = [...users];
-
-    // Apply search filter
-    if (search.trim()) {
-      const searchLower = search.toLowerCase();
-      result = result.filter(
-        (user) =>
-          user.name.toLowerCase().includes(searchLower) ||
-          user.email?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Apply role filter
-    if (roleFilter !== "All") {
-      result = result.filter((user) => user.role === roleFilter);
-    }
-
-    // Apply visibility filter
-    if (visibilityFilter !== "All") {
-      const isVisible = visibilityFilter === "Visible";
-      result = result.filter((user) => user.isVisible === isVisible);
-    }
-
-    setFilteredUsers(result);
-    setTotalItems(result.length);
-    setCurrentPage(1);
-  }, [search, roleFilter, visibilityFilter, users]);
-
-  /* ================= PAGINATION ================= */
-
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const { page: currentPage, totalPages, totalItems, limit: itemsPerPage } = pagination;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+    setPage(Math.max(1, Math.min(page, totalPages)));
     setSelected([]);
   };
 
@@ -246,8 +154,6 @@ export default function UserManagement() {
     return items;
   };
 
-  /* ================= SELECTION ================= */
-
   const toggleSelect = (id: string) => {
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -255,67 +161,32 @@ export default function UserManagement() {
   };
 
   const isAllSelected =
-    paginatedUsers.length > 0 && paginatedUsers.every((u) => selected.includes(u.id));
+    users.length > 0 && users.every((u) => selected.includes(u.id));
 
-  /* ================= ACTIONS ================= */
-
-  const toggleVisibility = async (user: AdminUser, isVisible: boolean) => {
-    setLoading(true);
-    try {
-      if (user.role === "Trainee") {
-        await adminService.updateStudent(user.id, { isVisible });
-      }
-
-      if (user.role === "Company") {
-        await adminService.updateCompany(user.id, { isVisible });
-      }
-
-      fetchUsers();
-    } finally {
-      setLoading(false);
-    }
+  const handleToggleVisibility = async (user: AdminUser, isVisible: boolean) => {
+    await toggleVisibility(user, isVisible);
   };
 
-  const bulkSetVisibility = async (isVisible: boolean) => {
-    setLoading(true);
-    try {
-      await Promise.all(
-        selected.map((id) => {
-          const user = users.find((u) => u.id === id);
-          if (!user) return;
-
-          if (user.role === "Trainee")
-            return adminService.updateStudent(id, { isVisible });
-
-          if (user.role === "Company")
-            return adminService.updateCompany(id, { isVisible });
-        })
-      );
-      fetchUsers();
-    } finally {
-      setLoading(false);
-    }
+  const handleBulkSetVisibility = async (isVisible: boolean) => {
+    await bulkSetVisibility(selected, isVisible);
+    setSelected([]);
   };
 
-  const deleteUser = async (user: AdminUser) => {
-    setLoading(true);
-    try {
-      if (user.role === "Trainee") {
-        await adminService.deleteStudent(user.id);
-      }
-
-      if (user.role === "Company") {
-        await adminService.deleteCompany(user.id);
-      }
-
-      fetchUsers();
-    } finally {
-      setLoading(false);
-      setDeleteTarget(null);
-    }
+  const handleDeleteUser = async (user: AdminUser) => {
+    await deleteUser(user);
+    setDeleteTarget(null);
+    setSelected([]);
   };
 
-  /* ================= RENDER ================= */
+  const handleClearFilters = () => {
+    resetFilters();
+    setSelected([]);
+  };
+
+  const hasActiveFilters = 
+    filters.role !== "All" || 
+    filters.visibility !== "All" || 
+    filters.searchTerm.trim() !== "";
 
   return (
     <MainLayout>
@@ -341,10 +212,10 @@ export default function UserManagement() {
                   <Input
                     placeholder="Search by name or email..."
                     className="pl-10 pr-10 bg-background/50 border-border/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
-                    value={search}
+                    value={filters.searchTerm}
                     onChange={(e) => setSearch(e.target.value)}
                   />
-                  {search && (
+                  {filters.searchTerm && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -362,9 +233,10 @@ export default function UserManagement() {
                       {selected.length} selected
                     </span>
                     <Button 
-                      onClick={() => bulkSetVisibility(true)}
+                      onClick={() => handleBulkSetVisibility(true)}
                       size="sm"
                       className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+                      disabled={loading}
                     >
                       <Eye className="h-3.5 w-3.5 mr-1.5" />
                       Show
@@ -372,8 +244,9 @@ export default function UserManagement() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => bulkSetVisibility(false)}
+                      onClick={() => handleBulkSetVisibility(false)}
                       className="border-border/60 hover:bg-accent/50"
+                      disabled={loading}
                     >
                       <EyeOff className="h-3.5 w-3.5 mr-1.5" />
                       Hide
@@ -403,7 +276,7 @@ export default function UserManagement() {
                     <Label htmlFor="role-filter" className="text-xs text-muted-foreground whitespace-nowrap">
                       Role
                     </Label>
-                    <Select value={roleFilter} onValueChange={(value: any) => setRoleFilter(value)}>
+                    <Select value={filters.role} onValueChange={setRoleFilter}>
                       <SelectTrigger id="role-filter" className="w-[130px] h-9 bg-background/50 border-border/60">
                         <SelectValue />
                       </SelectTrigger>
@@ -420,7 +293,7 @@ export default function UserManagement() {
                     <Label htmlFor="visibility-filter" className="text-xs text-muted-foreground whitespace-nowrap">
                       Status
                     </Label>
-                    <Select value={visibilityFilter} onValueChange={(value: any) => setVisibilityFilter(value)}>
+                    <Select value={filters.visibility} onValueChange={setVisibilityFilter}>
                       <SelectTrigger id="visibility-filter" className="w-[130px] h-9 bg-background/50 border-border/60">
                         <SelectValue />
                       </SelectTrigger>
@@ -433,15 +306,11 @@ export default function UserManagement() {
                   </div>
 
                   {/* Clear Filters */}
-                  {(roleFilter !== "All" || visibilityFilter !== "All" || search) && (
+                  {hasActiveFilters && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        setRoleFilter("All");
-                        setVisibilityFilter("All");
-                        setSearch("");
-                      }}
+                      onClick={handleClearFilters}
                       className="h-9 text-muted-foreground hover:text-foreground"
                     >
                       <X className="h-3.5 w-3.5 mr-1.5" />
@@ -476,8 +345,8 @@ export default function UserManagement() {
                           onCheckedChange={() =>
                             setSelected(
                               isAllSelected 
-                                ? selected.filter((id) => !paginatedUsers.find((u) => u.id === id))
-                                : [...selected, ...paginatedUsers.map((u) => u.id).filter((id) => !selected.includes(id))]
+                                ? selected.filter((id) => !users.find((u) => u.id === id))
+                                : [...selected, ...users.map((u) => u.id).filter((id) => !selected.includes(id))]
                             )
                           }
                           className="border-border/60"
@@ -492,7 +361,7 @@ export default function UserManagement() {
                   </thead>
 
                   <tbody className="divide-y divide-border/40">
-                    {paginatedUsers.map((user, index) => (
+                    {users.map((user, index) => (
                       <tr 
                         key={user.id} 
                         className="hover:bg-accent/20 transition-colors duration-150 group"
@@ -575,7 +444,7 @@ export default function UserManagement() {
                             >
                               {user.isVisible ? (
                                 <DropdownMenuItem
-                                  onClick={() => toggleVisibility(user, false)}
+                                  onClick={() => handleToggleVisibility(user, false)}
                                   className="cursor-pointer hover:bg-accent/50"
                                 >
                                   <EyeOff className="h-4 w-4 mr-2" />
@@ -583,7 +452,7 @@ export default function UserManagement() {
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem
-                                  onClick={() => toggleVisibility(user, true)}
+                                  onClick={() => handleToggleVisibility(user, true)}
                                   className="cursor-pointer hover:bg-accent/50"
                                 >
                                   <Eye className="h-4 w-4 mr-2" />
@@ -618,7 +487,7 @@ export default function UserManagement() {
                       </tr>
                     ))}
 
-                    {paginatedUsers.length === 0 && (
+                    {users.length === 0 && (
                       <tr>
                         <td colSpan={6} className="p-12 text-center">
                           <div className="flex flex-col items-center gap-3">
@@ -731,7 +600,7 @@ export default function UserManagement() {
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-md hover:shadow-lg transition-all"
-                  onClick={() => deleteTarget && deleteUser(deleteTarget)}
+                  onClick={() => deleteTarget && handleDeleteUser(deleteTarget)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Permanently

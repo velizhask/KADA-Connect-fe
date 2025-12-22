@@ -89,12 +89,20 @@ const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
             <div className="hidden sm:flex items-center gap-2 min-w-0">
               <h3 className="font-semibold truncate">{trainee.fullName}</h3>
 
-              {trainee.batch && (
+              {trainee.employmentStatus && (
                 <Badge
                   variant="outline"
                   className="bg-primary text-white rounded-sm border-none text-xs shrink-0"
                 >
-                  {trainee.batch}
+                  {trainee.employmentStatus}
+                </Badge>
+              )}
+               {trainee.batch && (
+                <Badge
+                  variant="outline"
+                  className="bg-primary/10 text-primary rounded-sm border-none text-xs shrink-0"
+                >
+                  {trainee.batch} <span>{trainee.status}</span>
                 </Badge>
               )}
             </div>
@@ -134,32 +142,27 @@ const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
           )}
 
           {/* EDUCATION */}
-         {!isStudent && (
-  <>
-    {/* MOBILE */}
-    <div className="mt-2 sm:hidden space-y-2">
-      {(trainee.university || trainee.major) && (
-        <p className="text-sm text-gray-600">
-          {trainee.university}
-          {trainee.major && ` · ${trainee.major}`}
-        </p>
-      )}
+          {!isStudent && (
+            <>
+              {/* MOBILE */}
+              <div className="mt-2 sm:hidden space-y-2">
+                {(trainee.university || trainee.major) && (
+                  <p className="text-sm text-gray-600">
+                    {trainee.university}
+                    {trainee.major && ` · ${trainee.major}`}
+                  </p>
+                )}
+              </div>
 
-      
-    </div>
-
-    {/* DESKTOP */}
-    <div className="hidden sm:block mt-2 space-y-1">
-      <p className="text-sm text-gray-600 truncate">
-        {trainee.university || "-"}
-        {trainee.major && ` · ${trainee.major}`}
-      </p>
-
-      
-    </div>
-  </>
-)}
-
+              {/* DESKTOP */}
+              <div className="hidden sm:block mt-2 space-y-1">
+                <p className="text-sm text-gray-600 truncate">
+                  {trainee.university || "-"}
+                  {trainee.major && ` · ${trainee.major}`}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* DESKTOP ACTIONS */}

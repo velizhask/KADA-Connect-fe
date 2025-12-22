@@ -42,7 +42,11 @@ export default function CompanyProfile() {
             setViewMode={setViewMode}
           />
         ) : (
-          <CompanyPublicProfileView profile={profile} />
+          <CompanyPublicProfileView
+            profile={profile}
+            showBackToEdit
+            onBackToEdit={() => setViewMode("edit")}
+          />
         )}
       </div>
     </MainLayout>
@@ -117,23 +121,20 @@ const ProfileEdit = ({
     <div className="space-y-6">
       {/* HEADER CARD */}
       <Card className="shadow-none rounded-2xl border border-gray-200">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row items-start justify-between gap-6">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             {/* LEFT */}
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 w-full">
               {/* LOGO */}
-              <div className="relative max-w-[260px]">
+              <div className="relative max-w-[220px] sm:max-w-[260px] mx-auto sm:mx-0">
                 {profile.logo ? (
                   <img
                     src={profile.logo}
                     alt={profile.companyName || "Company logo"}
-                    className="
-        max-h-60
-        object-contain
-      "
+                    className="max-h-40 sm:max-h-60 object-contain mx-auto"
                   />
                 ) : (
-                  <div className="h-32 w-48 flex items-center justify-center bg-gray-100 rounded-md">
+                  <div className="h-28 w-40 sm:h-32 sm:w-48 flex items-center justify-center bg-gray-100 rounded-md mx-auto">
                     <Building2 className="w-10 h-10 text-gray-400" />
                   </div>
                 )}
@@ -151,8 +152,8 @@ const ProfileEdit = ({
               </div>
 
               {/* TEXT */}
-              <div className="space-y-4 flex-1">
-                <div className="text-2xl font-semibold text-gray-900">
+              <div className="space-y-4 flex-1 text-center sm:text-left">
+                <div className="text-xl sm:text-2xl font-semibold text-gray-900">
                   <InlineEdit
                     value={profile.companyName}
                     onSave={(v) => updateProfile({ companyName: v })}
@@ -172,9 +173,10 @@ const ProfileEdit = ({
               </div>
             </div>
 
+            {/* RIGHT ACTION */}
             <Button
-              variant="outline"
-              className="border-primary text-primary"
+              variant="default"
+              className="bg-primary text-white w-full lg:w-auto cursor-pointer"
               onClick={() => setViewMode("public")}
             >
               See Public View
@@ -206,23 +208,35 @@ const ProfileEdit = ({
               </Button>
 
               <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-y-3 text-sm">
-                <span className="text-gray-600">
-                  {" "}
-                  <User /> Contact Person
+                <span className="flex items-center gap-2 text-gray-600">
+                  <User size={16} />
+                  Contact Person
                 </span>
-                <div>{profile.contactPerson || <i>Empty</i>}</div>
+                <div>
+                  {profile.contactPerson || (
+                    <i className="text-gray-400">Empty</i>
+                  )}
+                </div>
 
-                <span className="text-gray-600">
-                  {" "}
-                  <Phone /> Phone
+                <span className="flex items-center gap-2 text-gray-600">
+                  <Phone size={16} />
+                  Phone
                 </span>
-                <div>{profile.contactPhone || <i>Empty</i>}</div>
+                <div>
+                  {profile.contactPhone || (
+                    <i className="text-gray-400">Empty</i>
+                  )}
+                </div>
 
-                <span className="text-gray-600">
-                  {" "}
-                  <Mail /> Email
+                <span className="flex items-center gap-2 text-gray-600">
+                  <Mail size={16} />
+                  Email
                 </span>
-                <div>{profile.contactEmail || <i>Empty</i>}</div>
+                <div>
+                  {profile.contactEmail || (
+                    <i className="text-gray-400">Empty</i>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -233,6 +247,10 @@ const ProfileEdit = ({
               </DialogHeader>
 
               <div className="space-y-4">
+                <span className="flex items-center gap-2 text-gray-600">
+                  <User size={16} />
+                  Contact Person
+                </span>
                 <Input
                   placeholder="Contact person"
                   value={contactDraft.contactPerson ?? ""}
@@ -243,7 +261,10 @@ const ProfileEdit = ({
                     })
                   }
                 />
-
+                <span className="flex items-center gap-2 text-gray-600">
+                  <Phone size={16} />
+                  Phone
+                </span>
                 <Input
                   placeholder="Phone"
                   value={contactDraft.contactPhone ?? ""}
@@ -254,7 +275,10 @@ const ProfileEdit = ({
                     })
                   }
                 />
-
+                <span className="flex items-center gap-2 text-gray-600">
+                  <Mail size={16} />
+                  Email
+                </span>
                 <Input
                   placeholder="Email"
                   value={contactDraft.contactEmail ?? ""}

@@ -210,6 +210,7 @@ const Navbar = () => {
 
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 min-w-[320px] bg-white shadow-xl rounded-xl overflow-hidden animate-scale-in">
+                  {/* HEADER */}
                   <div className="flex items-center gap-3 p-4 border-b">
                     <div className="w-12 h-12 rounded-full border flex items-center justify-center overflow-hidden bg-white">
                       {avatarUrl ? (
@@ -230,18 +231,19 @@ const Navbar = () => {
                     </div>
                   </div>
 
-                  {role === "student" ||
-                    (role === "company" && (
-                      <Link
-                        to={profileLink}
-                        onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-gray-50"
-                      >
-                        <User className="w-5 h-5" />
-                        My Profile
-                      </Link>
-                    ))}
+                  {/* STUDENT / COMPANY */}
+                  {(role === "student" || role === "company") && (
+                    <Link
+                      to={profileLink}
+                      onClick={() => setIsProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-gray-50"
+                    >
+                      <User className="w-5 h-5" />
+                      My Profile
+                    </Link>
+                  )}
 
+                  {/* ADMIN */}
                   {role === "admin" && (
                     <Link
                       to="/admin/users"
@@ -253,6 +255,7 @@ const Navbar = () => {
                     </Link>
                   )}
 
+                  {/* LOGOUT */}
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 w-full border-t"
@@ -368,46 +371,45 @@ const Navbar = () => {
             </button>
           )}
 
-         {/* LOGGED IN */}
-{isLoggedIn && (
-  <>
-    <hr />
+          {/* LOGGED IN */}
+          {isLoggedIn && (
+            <>
+              <hr />
 
-    {/* STUDENT / COMPANY */}
-    {(role === "student" || role === "company") && (
-      <Link
-        to={profileLink}
-        onClick={() => setIsMenuOpen(false)}
-        className="block py-2 text-gray-700"
-      >
-        My Profile
-      </Link>
-    )}
+              {/* STUDENT / COMPANY */}
+              {(role === "student" || role === "company") && (
+                <Link
+                  to={profileLink}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-2 text-gray-700"
+                >
+                  My Profile
+                </Link>
+              )}
 
-    {/* ADMIN */}
-    {role === "admin" && (
-      <Link
-        to="/admin/users"
-        onClick={() => setIsMenuOpen(false)}
-        className="block py-2 text-gray-700"
-      >
-        Manage Users
-      </Link>
-    )}
+              {/* ADMIN */}
+              {role === "admin" && (
+                <Link
+                  to="/admin/users"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-2 text-gray-700"
+                >
+                  Manage Users
+                </Link>
+              )}
 
-    {/* LOGOUT (SINGLE SOURCE OF TRUTH) */}
-    <button
-      onClick={() => {
-        handleLogout();
-        setIsMenuOpen(false);
-      }}
-      className="w-full py-2 rounded-lg text-red-600 border border-red-600 mt-2"
-    >
-      Logout
-    </button>
-  </>
-)}
-
+              {/* LOGOUT (SINGLE SOURCE OF TRUTH) */}
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full py-2 rounded-lg text-red-600 border border-red-600 mt-2"
+              >
+                Logout
+              </button>
+            </>
+          )}
         </div>
       )}
     </header>

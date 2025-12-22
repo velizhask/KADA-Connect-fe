@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FileText } from "lucide-react";
-
-// Import markdown content from TypeScript files
 import { termsOfService } from "@/assets/docs/terms-of-service";
 import { privacyPolicy } from "@/assets/docs/privacy-policy";
 
@@ -124,7 +122,7 @@ const KadaTermsOfService = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Header */}
         <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-6 md:mb-8">
-          KADA Connect Terms of Service
+          KADA Connect Terms
         </h1>
 
         {/* Tabs */}

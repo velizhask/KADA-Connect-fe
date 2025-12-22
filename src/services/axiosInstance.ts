@@ -7,9 +7,7 @@ const axiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// ======================
 // REQUEST
-// ======================
 axiosInstance.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
 
@@ -20,9 +18,7 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-// ======================
 // RESPONSE (REFRESH TOKEN)
-// ======================
 axiosInstance.interceptors.response.use(
   (res) => res,
   async (error) => {

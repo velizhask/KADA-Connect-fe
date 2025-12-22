@@ -38,14 +38,10 @@ export type ProfileUpdatePayload =
   | Record<string, any>;
 
 export const authMeService = {
-  // =====================================================
   // GET PROFILE
-  // =====================================================
   getProfile: () => axiosInstance.get(API_PATHS.AUTH_ME.PROFILE),
 
-  // =====================================================
   // UPDATE PROFILE — auto detect role
-  // =====================================================
   updateProfile: (payload: ProfileUpdatePayload) => {
     const { role } = useAuthStore.getState();
 
@@ -96,9 +92,7 @@ export const authMeService = {
     return axiosInstance.patch(API_PATHS.AUTH_ME.UPDATE_PROFILE, sanitized);
   },
 
-  // =====================================================
   // UPLOADS
-  // =====================================================
   uploadCV: (formData: FormData) =>
     axiosInstance.post(API_PATHS.AUTH_ME.UPLOAD_CV, formData, {
       headers: { "Content-Type": "multipart/form-data" },

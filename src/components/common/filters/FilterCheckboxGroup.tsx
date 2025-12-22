@@ -43,22 +43,20 @@ export function FilterCheckboxGroup({
   };
 
   return (
-    <Accordion
-      type="single"
-      collapsible
-      defaultValue={title}
-      className="w-full"
-    >
+    <Accordion type="single" collapsible defaultValue={title}>
       <AccordionItem value={title} className="border-none">
-        {/* HEADER */}
-        <AccordionTrigger className="py-2 text-sm font-semibold hover:no-underline">
+        <AccordionTrigger className="py-2 text-sm font-semibold">
           {title}
         </AccordionTrigger>
 
-        {/* CONTENT */}
         <AccordionContent className="pt-2 space-y-3">
-          {/* CHECKBOX LIST */}
-          <div className="space-y-2">
+          <div
+            className={`space-y-2 pr-1 transition-all ${
+              expanded
+                ? "max-h-48 overflow-y-auto scrollbar-thin"
+                : ""
+            }`}
+          >
             {visibleItems.map((item, index) => (
               <label
                 key={`${title}-${item}-${index}`}
@@ -73,12 +71,11 @@ export function FilterCheckboxGroup({
             ))}
           </div>
 
-          {/* SHOW MORE / LESS */}
           {safeItems.length > initialVisibleCount && (
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
             >
               {expanded ? (
                 <>

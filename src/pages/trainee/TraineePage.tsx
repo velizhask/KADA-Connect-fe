@@ -54,7 +54,7 @@ function FilterContent({
       />
 
       <FilterCheckboxGroup
-        title="Tech Stack"
+        title="Tech Skils"
         items={skills}
         values={filters.skills}
         onChange={(v) => updateArrayFilter("skills", v)}

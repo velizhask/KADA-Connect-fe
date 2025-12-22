@@ -13,6 +13,8 @@ import CompanyPublicProfile from "@/pages/company/profile/CompanyPublicProfile";
 
 import UserManagement from "@/pages/admin/UserManagement";
 
+import { LoadingSpinner } from "./components/common/LoadingSpinner";
+
 import ProjectShowcase from "@/pages/home/ProjectPage";
 import KADAJourneyPage from "@/pages/home/GalleryPage";
 import SuccessStoryPage from "@/pages/home/story/StoryPage";
@@ -33,6 +35,10 @@ import { ScrollTop } from "@/components/common/ScrollTop";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import ProfileSetupRoute from "@/router/ProfileSetupRoute";
+import ForgotPassword from "./pages/auth/password/ForgotPassword";
+import ResetPassword from "./pages/auth/password/ResetPassword";
+import RecoveryHandlerRoute from "./router/RecoveryHandlerRoute";
+import MeGuardRoute from "./router/MeGuardRoute";
 
 function App() {
   const loadAuth = useAuthStore((s) => s.loadFromStorage);
@@ -44,14 +50,15 @@ function App() {
 
   if (!isAuthLoaded) {
     return (
-      <div className="w-full h-screen flex items-center justify-center">
-        Loading...
-      </div>
+      <>
+      <LoadingSpinner></LoadingSpinner>
+      </>
     );
   }
 
   return (
     <BrowserRouter>
+      <RecoveryHandlerRoute />
       <ScrollTop />
 
       <Routes>
@@ -93,15 +100,32 @@ function App() {
         </Route>
 
         {/* AUTHENTICATED USER ROUTES                             */}
+        <Route
+          element={
+            <ProtectedRoute requireAuth allowedRoles={["student", "admin"]} />
+          }
+        >
+          <Route path="/companies" element={<CompanyPage />} />
+        </Route>
         <Route element={<ProtectedRoute requireAuth />}>
           <Route path="/trainees" element={<TraineePage />} />
+        </Route>
+
+        {/* "ME" ROUTES FOR AUTHENTICATED USERS                   */}
+        <Route
+          element={
+            <MeGuardRoute allowedRole="student" redirectTo="/companies/me" />
+          }
+        >
           <Route path="/trainees/me" element={<TraineeProfilePage />} />
+        </Route>
 
-          <Route path="/companies" element={<CompanyPage />} />
+        <Route
+          element={
+            <MeGuardRoute allowedRole="company" redirectTo="/trainees/me" />
+          }
+        >
           <Route path="/companies/me" element={<CompanyProfilePage />} />
-          {/* Public trainee profile */}
-
-          {/* Public company profile */}
         </Route>
 
         {/* AUTHENTICATED USER ROUTES LV.2                             */}
@@ -119,6 +143,10 @@ function App() {
         >
           <Route path="/companies/:id" element={<CompanyPublicProfile />} />
         </Route>
+
+        {/* PASSWORD RESET ROUTES                                */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* 404 PAGE                                              */}
         <Route path="*" element={<NotFoundPage />} />

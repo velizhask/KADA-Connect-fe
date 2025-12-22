@@ -5,7 +5,7 @@ import { API_PATHS } from "@/services/apiPath";
 export interface CompanyProfile {
   id: string;
 
-  companyName: string | null;
+  companyName: string;
   companySummary: string | null;
 
   industry: string | null;              

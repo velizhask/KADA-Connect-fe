@@ -2,9 +2,7 @@ export const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 export const API_PATHS = {
-  // ================================
   // AUTH ROUTES
-  // ================================
   AUTH: {
     REGISTER: `${API_BASE_URL}/auth/register`,
     LOGIN: `${API_BASE_URL}/auth/login`,
@@ -14,9 +12,7 @@ export const API_PATHS = {
     ME_LEGACY: `${API_BASE_URL}/auth/me`, // legacy
   },
 
-  // ================================
   // AUTH / ME ROUTES (CURRENT USER)
-  // ================================
   AUTH_ME: {
     PROFILE: `${API_BASE_URL}/auth/me/profile`,
     UPDATE_PROFILE: `${API_BASE_URL}/auth/me/profile`,
@@ -29,9 +25,7 @@ export const API_PATHS = {
     UPLOAD_LOGO: `${API_BASE_URL}/auth/me/logo`,
   },
 
-  // ================================
   // ADMIN ROUTES
-  // ================================
   ADMIN: {
     LOGS: `${API_BASE_URL}/admin/logs`,
     LOGS_BY_REQUEST: (requestId: string) =>
@@ -39,9 +33,7 @@ export const API_PATHS = {
     LOG_STATS: `${API_BASE_URL}/admin/logs/stats`,
   },
 
-  // ================================
   // COMPANIES ROUTES
-  // ================================
   COMPANIES: {
     LIST: `${API_BASE_URL}/companies`,
     SEARCH: `${API_BASE_URL}/companies/search`,
@@ -63,9 +55,7 @@ export const API_PATHS = {
     BULK_APPROVE: `${API_BASE_URL}/companies/bulk-approve`,
   },
 
-  // ================================
   // STUDENTS ROUTES
-  // ================================
   STUDENTS: {
     LIST: `${API_BASE_URL}/students`,
     SEARCH: `${API_BASE_URL}/students/search`,
@@ -95,9 +85,7 @@ export const API_PATHS = {
     BULK_APPROVE: `${API_BASE_URL}/students/bulk-approve`,
   },
 
-  // ================================
-  // LOOKUP / SUGGESTIONS (SESUI DOCS)
-  // ================================
+  // LOOKUP
   LOOKUP: {
     TECH_SKILL_SUGGESTIONS: `${API_BASE_URL}/suggestions/tech-skills`,
 

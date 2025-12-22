@@ -1,5 +1,3 @@
-// src/pages/register/RegisterTraineeStep2.tsx
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,9 +23,6 @@ export default function RegisterTraineeStep2() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  // ======================================================
-  // FORM STATE
-  // ======================================================
   const [form, setForm] = useState({
     university: "",
     major: "",
@@ -41,9 +36,6 @@ export default function RegisterTraineeStep2() {
   const update = (k: string, v: any) =>
     setForm((p) => ({ ...p, [k]: v }));
 
-  // ======================================================
-  // TEMP INPUT (ADD–ADD)
-  // ======================================================
   const [temp, setTemp] = useState({
     industry: "",
     tech: "",
@@ -69,9 +61,6 @@ export default function RegisterTraineeStep2() {
     }));
   };
 
-  // ======================================================
-  // VALIDATION
-  // ======================================================
   const isValid =
     form.university &&
     form.major &&
@@ -80,9 +69,7 @@ export default function RegisterTraineeStep2() {
     form.employmentStatus &&
     form.status;
 
-  // ======================================================
-  // SUBMIT
-  // ======================================================
+
   const handleSubmit = async () => {
     if (!isValid || loading) return;
     setLoading(true);
@@ -98,7 +85,6 @@ export default function RegisterTraineeStep2() {
         status: form.status,
         employmentStatus: form.employmentStatus,
 
-        // ⬇️ ARRAY → STRING (BACKEND SAFE)
         preferredIndustry: form.preferredIndustries.join(", "),
         techStack: form.techStacks.join(", "),
 
@@ -118,7 +104,6 @@ export default function RegisterTraineeStep2() {
         });
       }
 
-      localStorage.removeItem("trainee_step1");
       navigate("/trainees/me");
     } catch (err: any) {
       toast(
@@ -130,9 +115,6 @@ export default function RegisterTraineeStep2() {
     }
   };
 
-  // ======================================================
-  // RENDER
-  // ======================================================
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Toaster richColors position="top-center" />

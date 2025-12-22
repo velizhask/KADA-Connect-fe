@@ -2,13 +2,9 @@ import { useEffect, useState } from "react";
 import { studentServices } from "@/services/studentServices";
 import { companyServices } from "@/services/companyServices";
 
-/* ======================================================
-   🧹 UTILITY: CLEAN STRING LIST (STRING OR OBJECT)
-====================================================== */
 const cleanStringList = (data: any[]): string[] => {
   return data
     .map((item) => {
-      // CASE 1: API returns string[]
       if (typeof item === "string") {
         return item.trim();
       }
@@ -24,13 +20,9 @@ const cleanStringList = (data: any[]): string[] => {
       (value): value is string =>
         typeof value === "string" && value.length > 0
     )
-    // REMOVE DUPLICATES (IMPORTANT FOR YOUR DATA)
     .filter((value, index, self) => self.indexOf(value) === index);
 };
 
-/* ======================================================
-   🎣 HOOK
-====================================================== */
 export const useLookupFilters = () => {
   const [industries, setIndustries] = useState<string[]>([]);
   const [preferredIndustries, setPreferredIndustries] = useState<string[]>([]);
@@ -82,7 +74,7 @@ export const useLookupFilters = () => {
           cleanStringList(majorsRes?.data?.data || [])
         );
       } catch (error) {
-        console.error("❌ Failed to fetch lookup filters:", error);
+        console.error("Failed to fetch lookup filters:", error);
       }
     };
 

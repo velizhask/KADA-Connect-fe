@@ -2,9 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { companyServices } from "@/services/companyServices";
 import { useDebounce } from "@/hooks/useDebounce";
 
-/* =======================
- * TYPES
- * ======================= */
 export interface CompanyFilters {
   searchTerm: string;
   industries: string[];
@@ -16,10 +13,6 @@ export const useCompanies = (limit = 5) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * 🔥 FE-controlled pagination
-   * (SAMA PERSIS DENGAN useTrainees)
-   */
   const [pagination, setPagination] = useState({
     page: 1,
     limit,
@@ -34,9 +27,6 @@ export const useCompanies = (limit = 5) => {
 
   const debouncedSearch = useDebounce(filters.searchTerm, 500);
 
-  /* =======================
-   * FETCH
-   * ======================= */
 const fetchCompanies = useCallback(async () => {
   setLoading(true);
 
@@ -59,7 +49,6 @@ const fetchCompanies = useCallback(async () => {
     const rawData = res.data?.data ?? [];
     const meta = res.data?.pagination ?? {};
 
-    // 🔥 SETTING LIMIT UI DI SINI
     const data = rawData.slice(0, limit);
 
     setCompanies(data);
@@ -90,9 +79,7 @@ const fetchCompanies = useCallback(async () => {
     fetchCompanies();
   }, [fetchCompanies]);
 
-  /* ================= FILTER & SEARCH ================= */
 
-  // ⬅️ KHUSUS ARRAY FILTER (industries, techRoles)
   const updateArrayFilter = (
     key: "industries" | "techRoles",
     values: string[]

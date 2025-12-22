@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const NotFoundPage = () => {
-  // Eye animation
   useEffect(() => {
     const pupils = document.querySelectorAll<HTMLElement>(".eye-pupil");
     let frame = 0;

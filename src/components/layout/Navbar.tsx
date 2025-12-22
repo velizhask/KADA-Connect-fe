@@ -28,12 +28,12 @@ const Navbar = () => {
   const displayName =
     profile?.fullName || user?.user_metadata?.fullName || user?.email || "User";
 
-const avatarUrl =
-  role === "student"
-    ? profile?.profilePhoto || null
-    : role === "company"
-    ? profile?.logo || null
-    : null;
+  const avatarUrl =
+    role === "student"
+      ? profile?.profilePhoto || null
+      : role === "company"
+      ? profile?.logo || null
+      : null;
   const hasProfile = !!profile;
 
   const profileLink =
@@ -161,17 +161,18 @@ const avatarUrl =
                 >
                   Trainees
                 </Link>
-
-                <Link
-                  to="/companies"
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    isActive("/companies")
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  Companies
-                </Link>
+                {(role === "student" || role === "admin") && (
+                  <Link
+                    to="/companies"
+                    className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      isActive("/companies")
+                        ? "text-primary bg-primary/10"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    Companies
+                  </Link>
+                )}
               </>
             )}
           </nav>
@@ -199,7 +200,7 @@ const avatarUrl =
                     <img
                       src={avatarUrl}
                       alt={displayName}
-                      className="w-full h-full object-cover"
+                      className="max-w-full max-h-full object-contain p-1"
                     />
                   ) : (
                     <User className="w-5 h-5 text-gray-500" />
@@ -210,12 +211,12 @@ const avatarUrl =
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 min-w-[320px] bg-white shadow-xl rounded-xl overflow-hidden animate-scale-in">
                   <div className="flex items-center gap-3 p-4 border-b">
-                    <div className="w-12 h-12 rounded-full border flex items-center justify-center overflow-hidden bg-gray-100">
+                    <div className="w-12 h-12 rounded-full border flex items-center justify-center overflow-hidden bg-white">
                       {avatarUrl ? (
                         <img
                           src={avatarUrl}
                           alt={displayName}
-                          className="w-full h-full object-cover"
+                          className="max-w-full max-h-full object-contain p-1"
                         />
                       ) : (
                         <User className="w-6 h-6 text-gray-500" />
@@ -229,14 +230,17 @@ const avatarUrl =
                     </div>
                   </div>
 
-                  <Link
-                    to={profileLink}
-                    onClick={() => setIsProfileOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-gray-50"
-                  >
-                    <User className="w-5 h-5" />
-                    My Profile
-                  </Link>
+                  {role === "student" ||
+                    (role === "company" && (
+                      <Link
+                        to={profileLink}
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-gray-50"
+                      >
+                        <User className="w-5 h-5" />
+                        My Profile
+                      </Link>
+                    ))}
 
                   {role === "admin" && (
                     <Link
@@ -339,14 +343,15 @@ const avatarUrl =
               >
                 Trainees
               </Link>
-
-              <Link
-                to="/companies"
-                onClick={() => setIsMenuOpen(false)}
-                className="block py-2 text-gray-800"
-              >
-                Companies
-              </Link>
+              {(role === "student" || role === "admin") && (
+                <Link
+                  to="/companies"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-2 text-gray-800"
+                >
+                  Companies
+                </Link>
+              )}
             </>
           )}
 
@@ -363,29 +368,46 @@ const avatarUrl =
             </button>
           )}
 
-          {/* LOGGED IN */}
-          {isLoggedIn && (
-            <>
-              <hr />
-              <Link
-                to={profileLink}
-                onClick={() => setIsMenuOpen(false)}
-                className="block py-2 text-gray-700"
-              >
-                My Profile
-              </Link>
+         {/* LOGGED IN */}
+{isLoggedIn && (
+  <>
+    <hr />
 
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setIsMenuOpen(false);
-                }}
-                className="block py-2 text-red-600"
-              >
-                Logout
-              </button>
-            </>
-          )}
+    {/* STUDENT / COMPANY */}
+    {(role === "student" || role === "company") && (
+      <Link
+        to={profileLink}
+        onClick={() => setIsMenuOpen(false)}
+        className="block py-2 text-gray-700"
+      >
+        My Profile
+      </Link>
+    )}
+
+    {/* ADMIN */}
+    {role === "admin" && (
+      <Link
+        to="/admin/users"
+        onClick={() => setIsMenuOpen(false)}
+        className="block py-2 text-gray-700"
+      >
+        Manage Users
+      </Link>
+    )}
+
+    {/* LOGOUT (SINGLE SOURCE OF TRUTH) */}
+    <button
+      onClick={() => {
+        handleLogout();
+        setIsMenuOpen(false);
+      }}
+      className="w-full py-2 rounded-lg text-red-600 border border-red-600 mt-2"
+    >
+      Logout
+    </button>
+  </>
+)}
+
         </div>
       )}
     </header>

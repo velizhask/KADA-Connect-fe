@@ -1,9 +1,7 @@
 import axiosInstance from "@/services/axiosInstance";
 import { API_PATHS } from "@/services/apiPath";
 
-// ==============================
 // TYPES
-// ==============================
 export interface StudentFilters {
   page?: number;
   limit?: number;
@@ -33,9 +31,7 @@ export interface StudentPayload {
 }
 
 
-// ==============================
 // HELPER
-// ==============================
 function transformToBackend(data: StudentPayload) {
   const payload: Record<string, any> = {};
 
@@ -57,9 +53,7 @@ function transformToBackend(data: StudentPayload) {
   return payload;
 }
 
-// ==============================
 // STUDENT SERVICES
-// ==============================
 export const studentServices = {
   // LIST
   getStudents: (filters?: StudentFilters) =>

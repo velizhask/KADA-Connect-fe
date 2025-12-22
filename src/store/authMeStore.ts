@@ -1,14 +1,9 @@
-// ==========================================
-// authMeStore.ts — FINAL PATCHED VERSION
-// ==========================================
-
 import { create } from "zustand";
 import { authMeService } from "@/services/authMeServices";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from "sonner";
+import { extractErrorMessage } from "@/utils/apiError";
 
-/* ======================================================
-   NORMALIZER — STUDENT
-====================================================== */
 export type StudentProfile = {
   id: string;
   fullName: string;
@@ -38,9 +33,6 @@ export type StudentProfile = {
   timestamp?: string;
 };
 
-/* ======================================================
-   NORMALIZER — COMPANY
-====================================================== */
 export type CompanyProfile = {
   id: string;
 
@@ -65,10 +57,6 @@ export type CompanyProfile = {
 };
 
 export type Profile = StudentProfile | CompanyProfile;
-
-/* ======================================================
-   NORMALIZER HELPER
-====================================================== */
 function unwrapResponse(raw: any) {
   if (raw?.data && typeof raw.data === "object") return raw.data;
   return raw;
@@ -109,11 +97,13 @@ function normalizeCompany(raw: any): CompanyProfile {
   return {
     id: raw.id,
     companyName: raw.companyName ?? raw.company_name ?? null,
-    companySummary: raw.companySummary ?? raw.company_summary_description ?? null,
+    companySummary:
+      raw.companySummary ?? raw.company_summary_description ?? null,
 
     industry: raw.industry ?? raw.industry_sector ?? null,
     techRoles: raw.techRoles ?? raw.tech_roles_interest ?? null,
-    preferredSkillsets: raw.preferredSkillsets ?? raw.preferred_skillsets ?? null,
+    preferredSkillsets:
+      raw.preferredSkillsets ?? raw.preferred_skillsets ?? null,
 
     website: raw.website ?? raw.company_website_link ?? null,
     logo: raw.logo ?? raw.company_logo ?? null,
@@ -122,7 +112,8 @@ function normalizeCompany(raw: any): CompanyProfile {
     contactEmail: raw.contactEmail ?? raw.contact_email ?? null,
     contactPhone: raw.contactPhone ?? raw.contact_phone_number ?? null,
 
-    contactInfoVisible: raw.contactInfoVisible ?? raw.contact_info_visible ?? true,
+    contactInfoVisible:
+      raw.contactInfoVisible ?? raw.contact_info_visible ?? true,
 
     completionRate: raw.completionRate ?? 0,
     timestamp: raw.timestamp ?? null,
@@ -151,11 +142,6 @@ function normalizeProfile(raw: any): Profile {
   console.warn("Unknown profile type:", raw);
   return raw;
 }
-
-/* ======================================================
-   STORE FINAL
-====================================================== */
-
 interface AuthMeState {
   loading: boolean;
   profile: Profile | null;
@@ -172,9 +158,6 @@ export const useAuthMeStore = create<AuthMeState>((set) => ({
   loading: false,
   profile: null,
 
-  /* --------------------------------
-     FETCH PROFILE
-  --------------------------------- */
   fetchProfile: async () => {
     set({ loading: true });
     try {
@@ -187,18 +170,13 @@ export const useAuthMeStore = create<AuthMeState>((set) => ({
         loading: false,
       });
 
-      // 🔥 WAJIB: Sinkronkan ke AuthStore
       useAuthStore.getState().setAuth({ profile: normalized });
-
     } catch (err) {
       console.error("Fetch profile failed:", err);
       set({ loading: false });
     }
   },
 
-  /* --------------------------------
-     UPDATE PROFILE
-  --------------------------------- */
   updateProfile: async (data: any) => {
     try {
       await authMeService.updateProfile(data);
@@ -210,57 +188,60 @@ export const useAuthMeStore = create<AuthMeState>((set) => ({
 
       // 🔥 Sync ke AuthStore
       useAuthStore.getState().setAuth({ profile: normalized });
-
+      toast.success("Profile updated successfully");
     } catch (err) {
-      console.error("Update profile failed:", err);
+      toast.error(extractErrorMessage(err));
+    }
+  },
+  uploadCV: async (file: File) => {
+    try {
+      const form = new FormData();
+      form.append("file", file);
+
+      await authMeService.uploadCV(form);
+
+      const res = await authMeService.getProfile();
+      const normalized = normalizeProfile(res.data ?? res);
+
+      set({ profile: normalized });
+      useAuthStore.getState().setAuth({ profile: normalized });
+      toast.success("Profile updated successfully");
+    } catch (err) {
+      toast.error(extractErrorMessage(err));
     }
   },
 
-  /* --------------------------------
-     UPLOAD CV
-  --------------------------------- */
-  uploadCV: async (file: File) => {
-    const form = new FormData();
-     form.append("file", file);
-
-    await authMeService.uploadCV(form);
-
-    const res = await authMeService.getProfile();
-    const normalized = normalizeProfile(res.data ?? res);
-
-    set({ profile: normalized });
-    useAuthStore.getState().setAuth({ profile: normalized });
-  },
-
-  /* --------------------------------
-     UPLOAD PHOTO
-  --------------------------------- */
   uploadPhoto: async (file: File) => {
-    const form = new FormData();
-   form.append("file", file);
+    try {
+      const form = new FormData();
+      form.append("file", file);
 
-    await authMeService.uploadPhoto(form);
+      await authMeService.uploadPhoto(form);
 
-    const res = await authMeService.getProfile();
-    const normalized = normalizeProfile(res.data ?? res);
+      const res = await authMeService.getProfile();
+      const normalized = normalizeProfile(res.data ?? res);
 
-    set({ profile: normalized });
-    useAuthStore.getState().setAuth({ profile: normalized });
+      set({ profile: normalized });
+      useAuthStore.getState().setAuth({ profile: normalized });
+    } catch (err) {
+      toast.error(extractErrorMessage(err));
+    }
   },
 
-  /* --------------------------------
-     UPLOAD LOGO
-  --------------------------------- */
   uploadLogo: async (file: File) => {
-    const form = new FormData();
-   form.append("file", file);
+    try {
+      const form = new FormData();
+      form.append("file", file);
 
-    await authMeService.uploadLogo(form);
+      await authMeService.uploadLogo(form);
 
-    const res = await authMeService.getProfile();
-    const normalized = normalizeProfile(res.data ?? res);
+      const res = await authMeService.getProfile();
+      const normalized = normalizeProfile(res.data ?? res);
 
-    set({ profile: normalized });
-    useAuthStore.getState().setAuth({ profile: normalized });
+      set({ profile: normalized });
+      useAuthStore.getState().setAuth({ profile: normalized });
+    } catch (err) {
+      toast.error(extractErrorMessage(err));
+    }
   },
 }));

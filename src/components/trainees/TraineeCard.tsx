@@ -97,29 +97,46 @@ const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
                   {trainee.employmentStatus}
                 </Badge>
               )}
-               {trainee.batch && (
-                <Badge
-                  variant="outline"
-                  className="bg-primary/10 text-primary rounded-sm border-none text-xs shrink-0"
-                >
-                  {trainee.batch} <span>{trainee.status}</span>
-                </Badge>
+
+              {isStudent && (
+                <div>
+                  {trainee.batch && (
+                  <Badge
+                    variant="outline"
+                    className=" bg-primary/10 text-primary rounded-sm border-none text-xs shrink-0"
+                  >
+                    {trainee.batch} <span>{trainee.status}</span>
+                  </Badge>
+                )}
+                </div>
               )}
             </div>
 
             {/* MOBILE: stacked */}
-            <div className="sm:hidden">
-              <h3 className="font-semibold truncate">{trainee.fullName}</h3>
+           <div className="sm:hidden">
+  <h3 className="font-semibold truncate">{trainee.fullName}</h3>
 
-              {trainee.batch && (
-                <Badge
-                  variant="outline"
-                  className="mt-1 inline-flex bg-primary text-white rounded-sm border-none text-xs"
-                >
-                  {trainee.batch}
-                </Badge>
-              )}
-            </div>
+  <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
+    {trainee.employmentStatus && (
+      <Badge
+        variant="outline"
+        className="bg-primary text-white rounded-sm border-none text-xs"
+      >
+        {trainee.employmentStatus}
+      </Badge>
+    )}
+
+    {isStudent && trainee.batch && (
+      <Badge
+        variant="outline"
+        className="bg-primary/10 text-primary rounded-sm border-none text-xs"
+      >
+        {[trainee.batch, trainee.status].filter(Boolean).join("  ")}
+      </Badge>
+    )}
+  </div>
+</div>
+
           </div>
 
           {/* TECH SKILLS — STUDENT ONLY (BELOW NAME) */}
@@ -152,6 +169,14 @@ const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
                     {trainee.major && ` · ${trainee.major}`}
                   </p>
                 )}
+                {trainee.batch && (
+                  <Badge
+                    variant="outline"
+                    className="mt-2 bg-primary/10 text-primary rounded-sm border-none text-xs shrink-0"
+                  >
+                    {trainee.batch} <span>{trainee.status}</span>
+                  </Badge>
+                )}
               </div>
 
               {/* DESKTOP */}
@@ -160,6 +185,14 @@ const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
                   {trainee.university || "-"}
                   {trainee.major && ` · ${trainee.major}`}
                 </p>
+                {trainee.batch && (
+                  <Badge
+                    variant="outline"
+                    className="mt-2 bg-primary/10 text-primary rounded-sm border-none text-xs shrink-0"
+                  >
+                    {trainee.batch} <span>{trainee.status}</span>
+                  </Badge>
+                )}
               </div>
             </>
           )}

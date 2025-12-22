@@ -58,7 +58,6 @@ export const useUsers = (limit = 10) => {
         });
         
         const studentsData = studentsRes.data.data ?? [];
-        const studentsMeta = studentsRes.data.pagination ?? {};
         
         
         allStudents = [...allStudents, ...studentsData];
@@ -85,7 +84,6 @@ export const useUsers = (limit = 10) => {
         });
         
         const companiesData = companiesRes.data.data ?? [];
-        const companiesMeta = companiesRes.data.pagination ?? {};
         
         
         allCompanies = [...allCompanies, ...companiesData];

@@ -6,13 +6,13 @@ export default function ProfileSetupRoute() {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  // Jika profile SUDAH ada
+  // if profile exists, redirect to respective "me" page
   if (profile !== null) {
     if (role === "student") return <Navigate to="/trainees/me" replace />;
     if (role === "company") return <Navigate to="/companies/me" replace />;
     return <Navigate to="/" replace />;
   }
 
-  // Jika belum ada profile → boleh lanjut
+  // if no profile, allow to proceed to setup
   return <Outlet />;
 }

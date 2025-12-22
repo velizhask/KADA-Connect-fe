@@ -4,12 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserCircle, ExternalLink } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
-import { getStatusBadgeClass } from "@/utils/trainees/statusBadgeHelper";
 import { useNavigate } from "react-router-dom";
 
-/* =========================
- * TYPES
- * ========================= */
 interface Trainee {
   id: string;
   fullName: string;
@@ -23,14 +19,12 @@ interface Trainee {
   preferredIndustry?: string;
   techStack?: string;
   cvUpload?: string;
+  selfIntroduction?: string;
 
   profilePhoto?: string;
   portfolioLink?: string;
 }
 
-/* =========================
- * HELPERS
- * ========================= */
 const parseSmartList = (value?: string, limit = 2) => {
   if (!value) return { show: [], more: 0 };
 
@@ -49,9 +43,6 @@ const parseSmartList = (value?: string, limit = 2) => {
   };
 };
 
-/* =========================
- * COMPONENT
- * ========================= */
 const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
   const [isError, setIsError] = useState(false);
   const navigate = useNavigate();
@@ -78,8 +69,7 @@ const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
     >
       {/* ================= HEADER ================= */}
       <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
-        {/* PHOTO */}
-        <div className="h-30 w-30 sm:h-24 sm:w-24 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center shrink-0">
+        <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center shrink-0">
           {trainee.profilePhoto && !isError ? (
             <img
               src={trainee.profilePhoto}
@@ -87,52 +77,89 @@ const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
               className="w-full h-full object-cover"
             />
           ) : (
-            <UserCircle className="w-8 h-8 text-gray-300" />
+            <UserCircle className="w-10 h-10 text-gray-300" />
           )}
         </div>
 
         {/* INFO */}
-        <div className="min-w-0 flex-1 text-center sm:text-left">
-          <h3 className="font-semibold truncate">{trainee.fullName}</h3>
+        <div className="min-w-0 flex-1 text-center sm:text-left flex flex-col justify-start">
+          {/* NAME + BADGE */}
+          <div className="min-w-0">
+            {/* DESKTOP: inline */}
+            <div className="hidden sm:flex items-center gap-2 min-w-0">
+              <h3 className="font-semibold truncate">{trainee.fullName}</h3>
 
-          {/* BADGES */}
-          <div className="mt-1 flex flex-wrap gap-2 justify-center sm:justify-start">
-            <Badge
-              variant="outline"
-              className={`text-xs ${getStatusBadgeClass(trainee.status)}`}
-            >
-              {trainee.status}
-            </Badge>
+              {trainee.batch && (
+                <Badge
+                  variant="outline"
+                  className="bg-primary text-white rounded-sm border-none text-xs shrink-0"
+                >
+                  {trainee.batch}
+                </Badge>
+              )}
+            </div>
 
-            {trainee.employmentStatus && (
-              <Badge variant="secondary" className="text-xs">
-                {trainee.employmentStatus}
-              </Badge>
-            )}
+            {/* MOBILE: stacked */}
+            <div className="sm:hidden">
+              <h3 className="font-semibold truncate">{trainee.fullName}</h3>
 
-            {trainee.batch && (
-              <Badge variant="outline" className="text-xs">
-                {trainee.batch}
-              </Badge>
-            )}
+              {trainee.batch && (
+                <Badge
+                  variant="outline"
+                  className="mt-1 inline-flex bg-primary text-white rounded-sm border-none text-xs"
+                >
+                  {trainee.batch}
+                </Badge>
+              )}
+            </div>
           </div>
 
-          {/* EDUCATION */}
-          {!isStudent && (
-            <>
-              {/* MOBILE */}
-              <div className="mt-2 sm:hidden space-y-0.5 text-sm text-gray-600">
-                {trainee.university && <p>{trainee.university}</p>}
-                {trainee.major && <p>{trainee.major}</p>}
+          {/* TECH SKILLS — STUDENT ONLY (BELOW NAME) */}
+          {isStudent && tech.show.length > 0 && (
+            <div className="mt-5">
+              <p className="text-xs text-gray-500 mb-1">Tech Skills</p>
+              <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                {tech.show.map((t) => (
+                  <Badge key={t} variant="secondary" className="text-xs">
+                    {t}
+                  </Badge>
+                ))}
+                {tech.more > 0 && (
+                  <Badge variant="secondary" className="text-xs">
+                    +{tech.more} more
+                  </Badge>
+                )}
               </div>
-
-              {/* DESKTOP */}
-              <p className="hidden sm:block mt-1 text-sm text-gray-600 truncate">
-                {trainee.university || "-"}
-                {trainee.major && ` · ${trainee.major}`}
-              </p>
-            </>
+            </div>
           )}
+
+          {/* EDUCATION */}
+         {!isStudent && (
+  <>
+    {/* MOBILE */}
+    <div className="mt-2 sm:hidden space-y-2">
+      {(trainee.university || trainee.major) && (
+        <p className="text-sm text-gray-600">
+          {trainee.university}
+          {trainee.major && ` · ${trainee.major}`}
+        </p>
+      )}
+
+      
+    </div>
+
+    {/* DESKTOP */}
+    <div className="hidden sm:block mt-2 space-y-1">
+      <p className="text-sm text-gray-600 truncate">
+        {trainee.university || "-"}
+        {trainee.major && ` · ${trainee.major}`}
+      </p>
+
+      
+    </div>
+  </>
+)}
+
         </div>
 
         {/* DESKTOP ACTIONS */}
@@ -145,14 +172,25 @@ const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
                 </a>
               </Button>
             )}
-
-            {trainee.portfolioLink && (
-              <Button size="sm" variant="outline" asChild>
-                <a href={trainee.portfolioLink} target="_blank">
-                  Portfolio <ExternalLink className="w-3 h-3 ml-1" />
-                </a>
-              </Button>
-            )}
+          </div>
+        )}
+        {/* PORTFOLIO — DESKTOP */}
+        {trainee.portfolioLink && (
+          <div className="hidden sm:flex">
+            <Button size="sm" variant="outline" asChild>
+              <a href={trainee.portfolioLink} target="_blank">
+                Portfolio <ExternalLink className="w-3 h-3 ml-1" />
+              </a>
+            </Button>
+          </div>
+        )}
+        {isStudent && trainee.portfolioLink && (
+          <div className="sm:hidden mt-3">
+            <Button size="sm" variant="outline" className="w-full" asChild>
+              <a href={trainee.portfolioLink} target="_blank">
+                Portfolio <ExternalLink className="w-3 h-3 ml-1" />
+              </a>
+            </Button>
           </div>
         )}
       </div>
@@ -160,6 +198,7 @@ const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
       {/* ================= SKILLS & INDUSTRY ================= */}
       {!isStudent && (
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* TECH SKILLS */}
           {tech.show.length > 0 && (
             <div>
               <p className="text-xs text-gray-500 mb-1">Tech Skills</p>
@@ -178,11 +217,10 @@ const TraineeCard: React.FC<{ trainee: Trainee }> = ({ trainee }) => {
             </div>
           )}
 
+          {/* PREFERRED INDUSTRY */}
           {industry.show.length > 0 && (
             <div>
-              <p className="text-xs text-gray-500 mb-1">
-                Preferred Industry
-              </p>
+              <p className="text-xs text-gray-500 mb-1">Preferred Industry</p>
               <div className="flex flex-wrap gap-2">
                 {industry.show.map((i) => (
                   <Badge key={i} variant="secondary" className="text-xs">

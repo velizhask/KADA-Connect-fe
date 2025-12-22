@@ -7,9 +7,6 @@ import { useAuthStore } from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-/* =========================
- * TYPES
- * ========================= */
 interface Company {
   id: number;
   companyName: string;
@@ -25,9 +22,6 @@ interface Company {
   contactInfoVisible?: boolean;
 }
 
-/* =========================
- * HELPERS
- * ========================= */
 const parseSmartList = (value?: string, limit = 2) => {
   if (!value) return { show: [], more: 0 };
 
@@ -116,7 +110,7 @@ const CompanyCard: React.FC<{ company: Company }> = ({ company }) => {
       {/* ================= HEADER ================= */}
       <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
         {/* LOGO */}
-        <div className="w-34 h-34 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
+        <div className="w-34 h-34 rounded-xl shadow-sm bg-gray-50 flex items-center justify-center shrink-0">
           {company.logo && !isError ? (
             <img
               src={company.logo}
@@ -174,25 +168,13 @@ const CompanyCard: React.FC<{ company: Company }> = ({ company }) => {
         {!isCompany && (
           <div className="hidden sm:flex gap-2">
             {company.website && (
-              <Button
-                size="sm"
-                onClick={(e) => handleWebsiteClick(e, company.website)}
-              >
-                Visit Website
-              </Button>
-            )}
-
-            {company.contactInfoVisible && company.contactEmail && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={(e) =>
-                  handleContactClick(e, "email", company.contactEmail)
-                }
-              >
-                <Mail className="w-3 h-3 mr-1" />
-                Email
-              </Button>
+             <Button
+              size="sm"
+              className="shadow-none"
+              onClick={(e) => handleWebsiteClick(e, company.website)}
+            >
+              Visit Website <ExternalLink className="w-3 h-3 ml-1" />
+            </Button>
             )}
           </div>
         )}
@@ -294,19 +276,8 @@ const CompanyCard: React.FC<{ company: Company }> = ({ company }) => {
       {/* ================= MOBILE ACTIONS ================= */}
       {!isCompany && (
         <div className="mt-4 flex flex-col gap-2 sm:hidden">
-          {company.website && (
-            <Button
-              size="sm"
-              className="shadow-none"
-              onClick={(e) => handleWebsiteClick(e, company.website)}
-            >
-              Visit Website <ExternalLink className="w-3 h-3 ml-1" />
-            </Button>
-          )}
-
-          {/* CONTACT INFO (MOBILE) */}
-          {company.contactInfoVisible && (
-            <div className="pt-3 border-t border-gray-100 space-y-2">
+           {company.contactInfoVisible && (
+            <div className="pt-3 border-t border-gray-100 space-y-2 mb-3"  >
               <p className="text-xs font-medium text-gray-500">
                 Contact Information
               </p>
@@ -319,18 +290,18 @@ const CompanyCard: React.FC<{ company: Company }> = ({ company }) => {
               )}
 
               {company.contactEmail && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full shadow-none justify-start"
-                  onClick={(e) =>
-                    handleContactClick(e, "email", company.contactEmail)
-                  }
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  <span className="truncate">{company.contactEmail}</span>
-                </Button>
-              )}
+              <button
+                onClick={(e) =>
+                  handleContactClick(e, "email", company.contactEmail)
+                }
+                className="flex items-center gap-2 text-primary hover:underline"
+              >
+                <Mail className="w-4 h-4" />
+                <span className="truncate max-w-[200px]">
+                  {company.contactEmail}
+                </span>
+              </button>
+            )}
 
               {company.contactPhone && (
                 <Button
@@ -347,6 +318,18 @@ const CompanyCard: React.FC<{ company: Company }> = ({ company }) => {
               )}
             </div>
           )}
+          {company.website && (
+            <Button
+              size="sm"
+              className="shadow-none"
+              onClick={(e) => handleWebsiteClick(e, company.website)}
+            >
+              Visit Website <ExternalLink className="w-3 h-3 ml-1" />
+            </Button>
+          )}
+
+          {/* CONTACT INFO (MOBILE) */}
+         
         </div>
       )}
     </Card>

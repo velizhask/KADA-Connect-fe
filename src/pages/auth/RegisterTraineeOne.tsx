@@ -89,16 +89,6 @@ export default function RegisterTraineeStep1() {
         role: res.role,
       });
 
-      // SAVE STEP 1
-      localStorage.setItem(
-        "trainee_step1",
-        JSON.stringify({
-          fullName: form.fullName,
-          email: form.email,
-          password: form.password,
-        })
-      );
-
       navigate("/register/trainee/details");
     } catch (err: any) {
       toast(err?.response?.data?.message || "Failed to create Trainee account");

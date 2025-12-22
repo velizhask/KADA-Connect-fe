@@ -9,10 +9,7 @@ interface AuthState {
 
   isAuthLoaded: boolean;
 
-  // 🧓 LEGACY (JANGAN DIHAPUS)
   setAuth: (data: Partial<AuthState>) => void;
-
-  // ✅ NEW (AMAN)
   setSession: (data: {
     accessToken: string;
     refreshToken?: string;
@@ -33,23 +30,17 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   isAuthLoaded: false,
 
-  // ======================
-  // LEGACY (dipakai banyak file)
-  // ======================
   setAuth: (data) =>
     set((prev) => {
       const updated = {
         ...prev,
         ...data,
-        isAuthLoaded: true, // 🔒 penting
+        isAuthLoaded: true,
       };
       localStorage.setItem("auth", JSON.stringify(updated));
       return updated;
     }),
 
-  // ======================
-  // NEW (RECOMMENDED)
-  // ======================
   setSession: ({ accessToken, refreshToken, user, profile }) =>
     set((prev) => {
       const updated = {
@@ -77,9 +68,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  // ======================
-  // LOAD SESSION (ON APP START)
-  // ======================
   loadFromStorage: () => {
     const raw = localStorage.getItem("auth");
     if (!raw) {

@@ -32,9 +32,6 @@ class AuthService {
     const data = res.data.data;
     const user = data.user;
 
-    // ========================================
-    // ROLE FINAL: UTAMAKAN user_metadata.role
-    // ========================================
     const role =
       user?.user_metadata?.role ||
       user?.identities?.[0]?.identity_data?.role ||
@@ -44,7 +41,7 @@ class AuthService {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
       user,
-      role, // ROLE DARI METADATA
+      role, 
       profile: data.profile,
     };
   }
@@ -80,6 +77,25 @@ class AuthService {
     form.append("logo", file);
     const res = await axiosInstance.post(API_PATHS.AUTH_ME.UPLOAD_LOGO, form);
     return res.data.data;
+  }
+
+/** Forgot Password*/
+  async forgotPassword(email: string) {
+    const res = await axiosInstance.post(API_PATHS.AUTH.FORGOT_PASSWORD, {
+      email,
+    });
+
+    return res.data;
+  }
+
+/** Reset Password*/
+  async resetPassword(accessToken: string, newPassword: string) {
+    const res = await axiosInstance.post(API_PATHS.AUTH.RESET_PASSWORD, {
+      access_token: accessToken,
+      password: newPassword,
+    });
+
+    return res.data;
   }
 
   /** LOGOUT */

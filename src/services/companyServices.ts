@@ -1,10 +1,7 @@
 import axiosInstance from "@/services/axiosInstance";
 import { API_PATHS } from "@/services/apiPath";
 
-// ==============================
 // TYPES
-// ==============================
-
 export interface CompanyFilters {
   page?: number;
   limit?: number;
@@ -34,10 +31,7 @@ export interface CompanyPayload {
 }
 
 
-// ==============================
 // HELPER
-// ==============================
-
 const normalizeArray = (v?: string | string[]) =>
   Array.isArray(v) ? v.join(", ") : v;
 
@@ -88,14 +82,9 @@ function transformToBackend(data: CompanyPayload) {
 }
 
 
-// ==============================
 // COMPANY SERVICE
-// ==============================
-
 export const companyServices = {
-  // ======================================
   // GET ALL COMPANIES
-  // ======================================
 getCompanies: (filters?: CompanyFilters) =>
   axiosInstance.get(API_PATHS.COMPANIES.LIST, {
     params: {
@@ -112,15 +101,11 @@ getCompanies: (filters?: CompanyFilters) =>
     },
   }),
 
-  // ======================================
   // GET COMPANY BY ID (UUID)
-  // ======================================
   getCompanyById: (id: string) =>
     axiosInstance.get(API_PATHS.COMPANIES.DETAIL(id)),
 
-  // ======================================
   // CREATE COMPANY PROFILE
-  // ======================================
   createCompanyProfile: (data: CompanyPayload) => {
     return axiosInstance.post(
       API_PATHS.COMPANIES.CREATE,
@@ -128,9 +113,7 @@ getCompanies: (filters?: CompanyFilters) =>
     );
   },
 
-  // ======================================
   // UPDATE COMPANY PROFILE (PATCH)
-  // ======================================
   updateCompanyProfile: (id: string, data: CompanyPayload) => {
     return axiosInstance.patch(
       API_PATHS.COMPANIES.UPDATE(id),
@@ -138,15 +121,11 @@ getCompanies: (filters?: CompanyFilters) =>
     );
   },
 
-  // ======================================
   // DELETE COMPANY
-  // ======================================
   deleteCompany: (id: string) =>
     axiosInstance.delete(API_PATHS.COMPANIES.DELETE(id)),
 
-  // ======================================
   // SEARCH COMPANIES
-  // ======================================
   searchCompanies: (query: string, filters?: CompanyFilters) =>
   axiosInstance.get(API_PATHS.COMPANIES.SEARCH, {
     params: {
@@ -163,25 +142,19 @@ getCompanies: (filters?: CompanyFilters) =>
       }),
     },
   }),
-  // ======================================
   // LOOKUPS
-  // ======================================
   getIndustries: () =>
     axiosInstance.get(API_PATHS.COMPANIES.INDUSTRIES),
 
   getTechRoles: () =>
     axiosInstance.get(API_PATHS.COMPANIES.TECH_ROLES),
 
-  // ======================================
   // STATS
-  // ======================================
   getStats: () =>
     axiosInstance.get(API_PATHS.COMPANIES.STATS),
 
-  // ======================================
   // LOGO UPLOAD (multipart/form-data)
   // /companies/:id/logo
-  // ======================================
   uploadLogo: (id: string, file: File) => {
     const formData = new FormData();
     formData.append("logo", file);
@@ -192,15 +165,11 @@ getCompanies: (filters?: CompanyFilters) =>
     );
   },
 
-  // ======================================
   // DELETE LOGO
-  // ======================================
   deleteLogo: (id: string) =>
     axiosInstance.delete(API_PATHS.COMPANIES.DELETE_LOGO(id)),
 
-  // ======================================
   // GET LOGO
-  // ======================================
   getLogo: (id: string) =>
     axiosInstance.get(API_PATHS.COMPANIES.GET_LOGO(id)),
 };

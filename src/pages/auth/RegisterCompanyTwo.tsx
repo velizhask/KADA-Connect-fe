@@ -1,7 +1,3 @@
-// ==========================================
-// RegisterCompanyStep2.tsx — FINAL CLEAN VERSION
-// ==========================================
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -102,26 +98,25 @@ export default function RegisterCompanyStep2() {
     setLoading(true);
 
     try {
+      const payload = {
+        emailAddress: accountEmail,
 
-     const payload = {
-  emailAddress: accountEmail,
+        companyName: form.companyName,
+        companySummary: form.summary,
 
-  companyName: form.companyName,
-  companySummary: form.summary,
+        industry: form.sectors,
+        techRoles: form.roles,
+        preferredSkillsets: form.skills,
 
-  industry: form.sectors,
-  techRoles: form.roles,
-  preferredSkillsets: form.skills,
+        companyWebsite: form.website,
 
-  companyWebsite: form.website,
+        contactPersonName: form.contactPersonName,
+        contactEmailAddress: form.contactEmailAddress,
+        contactPhoneNumber: form.phone,
+        visibleContactInfo: form.contactInfoVisible,
 
-  contactPersonName: form.contactPersonName,
-  contactEmailAddress: form.contactEmailAddress,
-  contactPhoneNumber: form.phone,
-  visibleContactInfo: form.contactInfoVisible,
-
-  isVisible: true,
-};
+        isVisible: true,
+      };
 
       await companyServices.createCompanyProfile(payload);
 
@@ -213,28 +208,27 @@ export default function RegisterCompanyStep2() {
           </div>
 
           {/* CONTACT VISIBILITY */}
-<div className="w-full bg-gray-50 rounded-xl p-4 space-y-2">
-  <label className="flex items-start gap-3 cursor-pointer">
-    <Checkbox
-      checked={form.contactInfoVisible}
-      onCheckedChange={(checked) =>
-        update("contactInfoVisible", Boolean(checked))
-      }
-      className="mt-1 cursor-pointer"
-    />
+          <div className="w-full bg-gray-50 rounded-xl p-4 space-y-2">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <Checkbox
+                checked={form.contactInfoVisible}
+                onCheckedChange={(checked) =>
+                  update("contactInfoVisible", Boolean(checked))
+                }
+                className="mt-1 cursor-pointer"
+              />
 
-    <div className="space-y-1">
-      <p className="text-sm font-medium text-gray-900">
-        Show contact information publicly
-      </p>
-      <p className="text-xs text-gray-500 leading-relaxed">
-        Your contact person name, email, and phone number will be visible to
-        trainees and partner companies.
-      </p>
-    </div>
-  </label>
-</div>
-
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-900">
+                  Show contact information publicly
+                </p>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Your contact person name, email, and phone number will be
+                  visible to trainees and partner companies.
+                </p>
+              </div>
+            </label>
+          </div>
 
           {/* SECTORS */}
           <div>

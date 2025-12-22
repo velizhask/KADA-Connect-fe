@@ -83,7 +83,6 @@ export const useTrainees = (limit = 10) => {
     fetchTrainees();
   }, [fetchTrainees]);
 
-  /* ================= FILTER & SEARCH ================= */
 
   const updateArrayFilter = (key: keyof Filters, values: string[]) => {
     setFilters((prev) => ({ ...prev, [key]: values }));

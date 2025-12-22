@@ -1,9 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 
-/* ===============================
- * ROLE CONSTANT
- * =============================== */
 const ROLES = ["admin", "company", "student"] as const;
 type Role = (typeof ROLES)[number];
 

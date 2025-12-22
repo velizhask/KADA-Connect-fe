@@ -52,15 +52,15 @@ const LoginPage = () => {
       const res = await authService.login(email, password);
 
       setAuth({
-  accessToken: res.accessToken,
-  refreshToken: res.refreshToken,
-  user: {
-    ...res.user,
-    email: res.user?.email || email,
-  },
-  role: res.role,
-  profile: res.profile,
-});
+        accessToken: res.accessToken,
+        refreshToken: res.refreshToken,
+        user: {
+          ...res.user,
+          email: res.user?.email || email,
+        },
+        role: res.role,
+        profile: res.profile,
+      });
 
       if (res.role === "student") {
         if (!res.profile) {
@@ -166,7 +166,7 @@ const LoginPage = () => {
           <div className="text-left">
             <button
               type="button"
-              onClick={() => toast.info("Password reset feature coming soon")}
+              onClick={() => navigate("/forgot-password")}
               className="text-sm text-blue-600 hover:underline cursor-pointer"
               disabled={loading}
             >

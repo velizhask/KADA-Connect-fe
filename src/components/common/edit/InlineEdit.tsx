@@ -20,15 +20,21 @@ export default function InlineEdit({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(value ?? ""));
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
-
+  const [saving, setSaving] = useState(false);
   const startEdit = () => {
     setEditing(true);
     setTimeout(() => inputRef.current?.focus(), 10);
   };
 
   const handleSave = async () => {
-    await onSave(draft.trim());
-    setEditing(false);
+    try {
+      setSaving(true);
+      await onSave(draft.trim());
+      setEditing(false);
+    } catch {
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -36,20 +42,25 @@ export default function InlineEdit({
     setEditing(false);
   };
 
+  const initialValue = String(value ?? "").trim();
+  const isDirty = draft.trim() !== initialValue;
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!multiline) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleSave();
-      }
-      if (e.key === "Escape") {
-        e.preventDefault();
-        handleCancel();
-      }
+    if (!multiline && e.key === "Enter") {
+      e.preventDefault();
+      handleSave();
+    }
+
+    if (multiline && e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleSave();
+    }
+
+    if (e.key === "Escape") {
+      e.preventDefault();
+      handleCancel();
     }
   };
 
-  /* ================= VIEW MODE ================= */
   if (!editing) {
     return (
       <div
@@ -71,7 +82,6 @@ export default function InlineEdit({
     );
   }
 
-  /* ================= EDIT MODE ================= */
   return (
     <div className="space-y-2">
       {multiline ? (
@@ -91,12 +101,18 @@ export default function InlineEdit({
         />
       )}
 
-      <div className="flex gap-2">
-        <Button size="sm" onClick={handleSave}>
-          Save
-        </Button>
+      <div className="flex justify-end gap-2">
         <Button size="sm" variant="outline" onClick={handleCancel}>
           Cancel
+        </Button>
+
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={saving || !isDirty}
+          className="bg-primary text-white hover:bg-primary/90"
+        >
+          {saving ? "Saving..." : "Save"}
         </Button>
       </div>
     </div>

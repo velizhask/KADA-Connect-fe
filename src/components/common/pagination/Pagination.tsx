@@ -63,7 +63,6 @@ export const Pagination: React.FC<PaginationProps> = ({
           />
         </PaginationItem>
 
-        {/* PAGE NUMBERS */}
         {getPages().map((p, index) =>
           p === "..." ? (
             <PaginationItem key={`ellipsis-${index}`}>
@@ -85,7 +84,6 @@ export const Pagination: React.FC<PaginationProps> = ({
           )
         )}
 
-        {/* NEXT */}
         <PaginationItem>
           <PaginationNext
             href="#"

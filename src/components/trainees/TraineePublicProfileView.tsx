@@ -1,8 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Phone, Mail, Linkedin } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 export type TraineePublicProfile = {
   id?: string;
   fullName: string;
@@ -23,7 +23,6 @@ export type TraineePublicProfile = {
   testimony?: string | null;
 };
 
-type BadgeColor = "purple" | "cyan" | "green";
 type TagColor = "purple" | "cyan";
 
 interface Props {
@@ -73,9 +72,18 @@ export default function TraineePublicProfileView({
             </h1>
 
             {/* BADGES */}
+
             <div className="flex flex-wrap gap-2 mb-4">
-              {profile.batch && <Badge color="purple">{profile.batch}</Badge>}
-              {profile.status && <Badge color="cyan">{profile.status}</Badge>}
+              {profile.employmentStatus && (
+                <Badge className="bg-primary text-white borde-none">
+                  {profile.employmentStatus}
+                </Badge>
+              )}
+              {(profile.batch || profile.status) && (
+                <Badge className="bg-primary/10 text-primary borde-none">
+                  {[profile.batch, profile.status].filter(Boolean).join("  ")}
+                </Badge>
+              )}
             </div>
 
             {/* CONTACT */}
@@ -159,8 +167,8 @@ export default function TraineePublicProfileView({
         <TagList items={industries} color="purple" />
       </Section>
 
-      {/* ================= TECH STACK ================= */}
-      <Section title="Tech Stack">
+      {/* ================= TECH SKILLS ================= */}
+      <Section title="Tech Skills">
         <TagList items={techStack} color="cyan" />
       </Section>
 
@@ -215,24 +223,6 @@ const IconButton = ({
   >
     {icon}
   </button>
-);
-
-const BADGE_COLOR_MAP: Record<BadgeColor, string> = {
-  purple: "bg-purple-100 text-purple-700",
-  cyan: "bg-cyan-100 text-cyan-700",
-  green: "bg-green-100 text-green-700",
-};
-
-const Badge = ({
-  children,
-  color,
-}: {
-  children: string;
-  color: BadgeColor;
-}) => (
-  <span className={`px-3 py-1 text-sm rounded-md ${BADGE_COLOR_MAP[color]}`}>
-    {children}
-  </span>
 );
 
 const TAG_COLOR_MAP: Record<TagColor, string> = {

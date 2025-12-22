@@ -1,9 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Mail, Globe, User2 } from "lucide-react";
+import { Button } from "../ui/button";
 
 export interface CompanyPublicProfile {
   id?: string;
-  companyName: string ;
+  companyName: string;
   companySummary?: string | null;
   industry?: string | null;
   website?: string | null;
@@ -15,63 +16,86 @@ export interface CompanyPublicProfile {
   contactInfoVisible?: boolean;
 }
 
+interface Props {
+  profile: CompanyPublicProfile;
+  showBackToEdit?: boolean;
+  onBackToEdit?: () => void;
+}
+
 const splitToList = (value?: string | null): string[] =>
   value
-    ? value.split(/[,|;/\n]+/).map(v => v.trim()).filter(Boolean)
+    ? value
+        .split(/[,|;/\n]+/)
+        .map((v) => v.trim())
+        .filter(Boolean)
     : [];
 
 export default function CompanyPublicProfileView({
   profile,
-}: {
-  profile: CompanyPublicProfile;
-}) {
+  showBackToEdit = false,
+  onBackToEdit,
+}: Props) {
   const industries = splitToList(profile.industry);
   const techRoles = splitToList(profile.techRoles);
   const skillsets = splitToList(profile.preferredSkillsets);
 
   return (
-       <div className="space-y-6">
+    <div className="space-y-6">
       {/* ================= HEADER ================= */}
       <Card className="rounded-2xl border border-gray-200 shadow-none">
-        <div className="p-8 flex flex-col md:flex-row items-center md:items-start gap-6">
-          {/* LOGO */}
-          <div className="w-64 h-40 flex items-center justify-center shrink-0">
-            {profile.logo ? (
-              <img
-                src={profile.logo}
-                alt={profile.companyName}
-                className="max-w-full max-h-full object-contain rounded-2xl"
-              />
-            ) : (
-              <span className="text-3xl font-bold text-gray-500">
-                {profile.companyName?.substring(0, 6)}
-              </span>
-            )}
-          </div>
-
-          {/* INFO */}
-          <div className="flex-1">
-            <h1 className="text-3xl font-semibold text-gray-900 mb-3">
-              {profile.companyName}
-            </h1>
-
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-700 mb-4">
-              {profile.website && (
-                <IconButton
-                  icon={<Globe className="h-4 w-4" />}
-                  onClick={() => window.open(profile.website!, "_blank")}
+        <div className="p-6 sm:p-8 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+          {/* LEFT CONTENT */}
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 flex-1">
+            {/* LOGO */}
+            <div className="w-56 sm:w-64 h-36 sm:h-40 flex items-center justify-center shrink-0">
+              {profile.logo ? (
+                <img
+                  src={profile.logo}
+                  alt={profile.companyName}
+                  className="max-w-full max-h-full object-contain rounded-xl"
                 />
-              )}
-              {profile.contactEmail && profile.contactInfoVisible && (
-                <IconButton
-                  icon={<Mail className="h-4 w-4" />}
-                  onClick={() =>
-                    (window.location.href = `mailto:${profile.contactEmail}`)
-                  }
-                />
+              ) : (
+                <span className="text-3xl font-bold text-gray-500">
+                  {profile.companyName?.substring(0, 6)}
+                </span>
               )}
             </div>
+
+            {/* INFO */}
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-3">
+                {profile.companyName}
+              </h1>
+
+              <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-700">
+                {profile.website && (
+                  <IconButton
+                    icon={<Globe className="h-4 w-4" />}
+                    onClick={() => window.open(profile.website!, "_blank")}
+                  />
+                )}
+                {profile.contactEmail && profile.contactInfoVisible && (
+                  <IconButton
+                    icon={<Mail className="h-4 w-4" />}
+                    onClick={() =>
+                      (window.location.href = `mailto:${profile.contactEmail}`)
+                    }
+                  />
+                )}
+              </div>
+            </div>
           </div>
+
+          {/* RIGHT ACTION */}
+          {showBackToEdit && (
+            <Button
+              variant="default"
+              className="bg-primary text-white w-full lg:w-auto cursor-pointer"
+              onClick={onBackToEdit}
+            >
+              Back to Edit
+            </Button>
+          )}
         </div>
       </Card>
 
@@ -118,7 +142,6 @@ export default function CompanyPublicProfileView({
     </div>
   );
 }
-
 
 const Section = ({ title, children }: any) => (
   <div>

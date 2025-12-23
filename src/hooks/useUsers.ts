@@ -41,95 +41,77 @@ export const useUsers = (limit = 10) => {
   /**
    * Fetch all users from backend (trainees + companies)
    */
-  const fetchAllUsers = useCallback(async () => {
-    setLoading(true);
+const fetchAllUsers = useCallback(async () => {
+  setLoading(true);
 
-    try {
-      
-      let allStudents: any[] = [];
-      let studentPage = 1;
-      let hasMoreStudents = true;
-      
-      while (hasMoreStudents) {
-        
-        const studentsRes = await adminService.getStudents({
-          page: studentPage,
-          limit: 20,
-        });
-        
-        const studentsData = studentsRes.data.data ?? [];
-        
-        
-        allStudents = [...allStudents, ...studentsData];
-        
-        if (studentsData.length < 20) {
-          hasMoreStudents = false;
-        } else if (studentsData.length === 0) {
-          hasMoreStudents = false;
-        } else {
-          studentPage++;
-        }
-      }
-      
-      
-      let allCompanies: any[] = [];
-      let companyPage = 1;
-      let hasMoreCompanies = true;
-      
-      while (hasMoreCompanies) {
-        
-        const companiesRes = await adminService.getCompanies({
-          page: companyPage,
-          limit: 20,
-        });
-        
-        const companiesData = companiesRes.data.data ?? [];
-        
-        
-        allCompanies = [...allCompanies, ...companiesData];
-        
-        if (companiesData.length < 20) {
-          hasMoreCompanies = false;
-        } else if (companiesData.length === 0) {
-          hasMoreCompanies = false;
-        } else {
-          companyPage++;
-        }
-      }
-      
+  try {
+    // ===== FETCH ALL STUDENTS =====
+    let allStudents: any[] = [];
+    let studentPage = 1;
+    let studentTotalPages = 1;
 
-      // Transform trainees
-      const traineeUsers: AdminUser[] = allStudents.map((s: any) => ({
-        id: s.id,
-        role: "Trainee" as const,
-        name: s.fullName,
-        email: s.email,
-        isVisible: Boolean(s.isVisible),
-        avatar: s.profilePhoto,
-      }));
+    do {
+      const res = await adminService.getStudents({
+        page: studentPage,
+        limit: 20,
+      });
 
-      // Transform companies
-      const companyUsers: AdminUser[] = allCompanies.map((c: any) => ({
-        id: c.id,
-        role: "Company" as const,
-        name: c.companyName,
-        email: c.email,
-        isVisible: Boolean(c.isVisible),
-        avatar: c.logo,
-      }));
+      const data = res.data?.data ?? [];
+      const meta = res.data?.pagination;
 
-      // Combine all users
-      const combinedUsers = [...traineeUsers, ...companyUsers];
-      
-      setAllUsers(combinedUsers);
-      setError(null);
-    } catch (err) {
-      console.error(" Failed to fetch all users:", err);
-      setError("Failed to load users.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      allStudents.push(...data);
+      studentTotalPages = meta?.totalPages ?? 1;
+      studentPage++;
+    } while (studentPage <= studentTotalPages);
+
+    // ===== FETCH ALL COMPANIES =====
+    let allCompanies: any[] = [];
+    let companyPage = 1;
+    let companyTotalPages = 1;
+
+    do {
+      const res = await adminService.getCompanies({
+        page: companyPage,
+        limit: 20,
+      });
+
+      const data = res.data?.data ?? [];
+      const meta = res.data?.pagination;
+
+      allCompanies.push(...data);
+      companyTotalPages = meta?.totalPages ?? 1;
+      companyPage++;
+    } while (companyPage <= companyTotalPages);
+
+    // ===== TRANSFORM =====
+    const traineeUsers: AdminUser[] = allStudents.map((s) => ({
+      id: s.id,
+      role: "Trainee",
+      name: s.fullName,
+      email: s.email,
+      isVisible: Boolean(s.isVisible),
+      avatar: s.profilePhoto,
+    }));
+
+    const companyUsers: AdminUser[] = allCompanies.map((c) => ({
+      id: c.id,
+      role: "Company",
+      name: c.companyName,
+      email: c.email,
+      isVisible: Boolean(c.isVisible),
+      avatar: c.logo,
+    }));
+
+    setAllUsers([...traineeUsers, ...companyUsers]);
+    setError(null);
+  } catch (err) {
+    console.error(err);
+    setError("Failed to load users.");
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
 
   useEffect(() => {
     let result = [...allUsers];
@@ -163,17 +145,15 @@ export const useUsers = (limit = 10) => {
 
     setPagination((prev) => ({
       ...prev,
-      page: 1, 
+      page: Math.min(prev.page, totalPages),
       totalPages,
       totalItems,
     }));
   }, [allUsers, debouncedSearch, filters.role, filters.visibility, limit]);
 
-
   useEffect(() => {
     fetchAllUsers();
   }, [fetchAllUsers]);
-
 
   const paginatedUsers = filteredUsers.slice(
     (pagination.page - 1) * limit,
@@ -212,7 +192,7 @@ export const useUsers = (limit = 10) => {
       } else if (user.role === "Company") {
         await adminService.updateCompany(user.id, { isVisible });
       }
-      
+
       // Update local state immediately for better UX
       setAllUsers((prev) =>
         prev.map((u) => (u.id === user.id ? { ...u, isVisible } : u))
@@ -242,7 +222,7 @@ export const useUsers = (limit = 10) => {
           return Promise.resolve();
         })
       );
-      
+
       // Update local state
       setAllUsers((prev) =>
         prev.map((u) => (userIds.includes(u.id) ? { ...u, isVisible } : u))
@@ -264,16 +244,18 @@ export const useUsers = (limit = 10) => {
       } else if (user.role === "Company") {
         await adminService.deleteCompany(user.id);
       }
-      
+
       // Remove from local state
       setAllUsers((prev) => prev.filter((u) => u.id !== user.id));
-      
+
       // Adjust page if needed (if current page becomes empty)
       setPagination((prev) => {
-        const newFilteredCount = filteredUsers.filter((u) => u.id !== user.id).length;
+        const newFilteredCount = filteredUsers.filter(
+          (u) => u.id !== user.id
+        ).length;
         const newTotalPages = Math.ceil(newFilteredCount / limit) || 1;
         const newPage = prev.page > newTotalPages ? newTotalPages : prev.page;
-        
+
         return {
           ...prev,
           page: newPage,
@@ -298,8 +280,7 @@ export const useUsers = (limit = 10) => {
     setVisibilityFilter,
     setSearch,
     resetFilters,
-    setPage: (page: number) =>
-      setPagination((prev) => ({ ...prev, page })),
+    setPage: (page: number) => setPagination((prev) => ({ ...prev, page })),
     toggleVisibility,
     bulkSetVisibility,
     deleteUser,

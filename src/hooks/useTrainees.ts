@@ -53,22 +53,17 @@ export const useTrainees = (limit = 10) => {
           : await studentServices.getStudents(params);
 
       const data = res.data?.data ?? [];
-      const meta = res.data?.pagination ?? {};
+      const meta = res.data?.pagination;
 
       setTrainees(data);
 
-      setPagination((prev) => {
-        const currentPage = meta.page ?? prev.page;
-        const isLastPage = data.length < limit;
-
-        return {
-          ...prev,
-          page: currentPage,
-          totalPages: isLastPage
-            ? currentPage
-            : Math.max(prev.totalPages, currentPage + 1),
-        };
-      });
+      if (meta) {
+        setPagination({
+          page: meta.page,
+          limit: meta.limit,
+          totalPages: meta.totalPages,
+        });
+      }
 
       setError(null);
     } catch (err) {
@@ -83,15 +78,14 @@ export const useTrainees = (limit = 10) => {
     fetchTrainees();
   }, [fetchTrainees]);
 
-
   const updateArrayFilter = (key: keyof Filters, values: string[]) => {
     setFilters((prev) => ({ ...prev, [key]: values }));
-    setPagination({ page: 1, limit, totalPages: 1 });
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   const setSearch = (value: string) => {
     setFilters((prev) => ({ ...prev, searchTerm: value }));
-    setPagination({ page: 1, limit, totalPages: 1 });
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   const resetFilters = () => {
@@ -103,7 +97,7 @@ export const useTrainees = (limit = 10) => {
       industries: [],
       skills: [],
     });
-    setPagination({ page: 1, limit, totalPages: 1 });
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   return {
@@ -114,7 +108,8 @@ export const useTrainees = (limit = 10) => {
     filters,
     updateArrayFilter,
     resetFilters,
-    setPage: (page: number) => setPagination((prev) => ({ ...prev, page })),
+    setPage: (page: number) =>
+      setPagination((prev) => ({ ...prev, page })),
     search: filters.searchTerm,
     setSearch,
   };

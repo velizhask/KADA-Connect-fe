@@ -45,7 +45,7 @@ export default function UserManagement() {
   const navigate = useNavigate();
 
   const {
-    users, // Already paginated from backend
+    users, 
     loading,
     pagination,
     filters,
